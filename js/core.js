@@ -203,6 +203,16 @@
   /* ================================================================ wspólne narzędzia ================================================================ */
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const vibrate = p => { try { navigator.vibrate?.(p); } catch (_) { } };
+  // Krótki „tik” dotykowy. Android: Vibration API. iPhone (Safari 18+) nie ma vibrate, ale przełączenie
+  // ukrytego <input type="checkbox" switch> daje systemowy tik — używamy go jako zapasu.
+  let hapEl = null, hapT = 0;
+  function haptic(ms = 5) {
+    const t = performance.now(); if (t - hapT < 26) return; hapT = t;
+    if ('vibrate' in navigator) { vibrate(ms); return; }
+    if (!/iP(hone|ad|od)/.test(navigator.userAgent)) return;
+    if (!hapEl) { hapEl = document.createElement('label'); hapEl.setAttribute('aria-hidden', 'true'); hapEl.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none'; hapEl.innerHTML = '<input type="checkbox" switch tabindex="-1">'; document.body.appendChild(hapEl); }
+    try { hapEl.click(); } catch (_) { }
+  }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let toastT = null;
   function toast(msg, { tone } = {}) {
@@ -217,7 +227,7 @@
   const defs = [];
   const GL = window.GL = {
     register(def) { defs.push(def); },
-    toast, vibrate, calm, esc,
+    toast, vibrate, haptic, calm, esc,
     get active() { return sections[cur]?.id; },
     go: id => { const i = sections.findIndex(s => s.id === id); if (i >= 0) navTo(i); },
   };
@@ -280,6 +290,7 @@
     navEl = $('#wheel');
     navEl.innerHTML = `<svg class="wheel-arc" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1c1c1c"/><stop offset="1" stop-color="#0b120e"/></linearGradient><linearGradient id="wl" x1="0" x2="1"><stop offset="0" stop-color="#A31C1B" stop-opacity="0"/><stop offset=".5" stop-color="#d13b39"/><stop offset="1" stop-color="#A31C1B" stop-opacity="0"/></linearGradient></defs><path class="wa-fill" d="M0 6 Q200 62 400 6 L400 120 L0 120 Z" fill="url(#wa)"/><path class="wa-line" d="M0 6 Q200 62 400 6" fill="none" stroke="url(#wl)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
       <div class="wheel-glow" aria-hidden="true"></div>
+      <div class="wheel-zip" aria-hidden="true"></div>
       <div class="wheel-track" role="tablist" aria-label="Sekcje"></div>
       <div class="wheel-label" aria-hidden="true"><span></span></div>`;
     arcEl = navEl.querySelector('.wheel-arc');
@@ -292,6 +303,7 @@
       track.appendChild(b);
       return b;
     });
+    zipEl = navEl.querySelector('.wheel-zip');
     setLabel(cur, true);
     bindDrag(navEl);
     addEventListener('resize', () => layout(pos));
@@ -311,8 +323,34 @@
     if (old) { old.classList.add('out'); old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * 26}px)`, filter: 'blur(4px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => old.remove(); }
   }
 
+  /* ---------- zamek błyskawiczny: ząbki na łuku jadą razem z ikonami, każdy ząbek = mini wibracja ---------- */
+  const TEETH = 7;      // ząbków na jedną sekcję
+  let zipEl = null, zipTeeth = [], zipIdx = null, zipLive = false;
+  function zip(p) {
+    const sp = SPACING(), w = navEl.clientWidth || innerWidth, H = navEl.clientHeight || 104, step = sp / TEETH;
+    const n = Math.ceil(w / step) + 2;
+    while (zipTeeth.length < n) { const i = document.createElement('i'); zipEl.appendChild(i); zipTeeth.push(i); }
+    const shift = (((p * sp) % step) + step) % step, base = Math.floor(p * TEETH);
+    zipTeeth.forEach((el, j) => {
+      if (j >= n) { el.style.display = 'none'; return; }
+      el.style.display = '';
+      const x = j * step - shift, t = Math.min(1, Math.max(0, x / w));
+      const yLine = (6 * (1 - t) ** 2 + 124 * t * (1 - t) + 6 * t * t) / 120 * H;  // ten sam łuk co w SVG
+      const ang = Math.atan((112 - 224 * t) * H / 120 / w) * 180 / Math.PI;
+      const side = (base + j) % 2 ? 1 : -1;                                      // ząbki na przemian nad i pod linią
+      const near = Math.max(0, 1 - Math.abs(x - w / 2) / (sp * 1.1));
+      el.style.transform = `translate(${x}px, ${yLine}px) rotate(${ang}deg) translateY(${side * (3.5 - near * 1.5)}px)`;
+      el.style.setProperty('--near', near.toFixed(3));
+    });
+    // każdy ząbek mijający środek = tik; przejście do kolejnej sekcji = mocniejszy
+    const idx = Math.round(p * TEETH);
+    if (zipIdx !== null && idx !== zipIdx && zipLive) haptic(idx % TEETH === 0 ? 14 : 4);
+    zipIdx = idx;
+  }
+
   // Ustawia koło i sekcje dla ciągłej pozycji p.
   function layout(p) {
+    if (zipEl) zip(p);
     const sp = SPACING(), w = navEl.clientWidth || innerWidth;
     navItems.forEach((b, i) => {
       const d = i - p, a = Math.abs(d);
@@ -351,11 +389,11 @@
       const dt = Math.min(0.032, (t - last) / 1000); last = t;
       v += (-k * (pos - i) - c * v) * dt;
       pos += v * dt;
-      if (Math.abs(pos - i) < 0.0015 && Math.abs(v) < 0.01) { pos = i; layout(pos); settle(i); return; }
+      if (Math.abs(pos - i) < 0.0015 && Math.abs(v) < 0.01) { pos = i; layout(pos); settle(i); zipLive = false; navEl.classList.remove('zip'); return; }
       layout(pos);
       anim = requestAnimationFrame(step);
     };
-    if (i !== cur) vibrate(8);
+    zipLive = true; navEl.classList.add('zip');
     activate(i);
     anim = requestAnimationFrame(step);
   }
@@ -386,7 +424,7 @@
     el.addEventListener('pointermove', e => {
       if (e.pointerId !== id) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
-      if (!axis) { if (Math.hypot(dx, dy) < 6) return; axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (axis === 'x') { el.setPointerCapture(id); el.classList.add('drag'); } }
+      if (!axis) { if (Math.hypot(dx, dy) < 6) return; axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (axis === 'x') { try { el.setPointerCapture(id); } catch (_) { } el.classList.add('drag', 'zip'); zipLive = true; haptic(6); } }
       if (axis !== 'x') return;
       dragMoved = true;
       let p = sp0 - dx / (SPACING() * 1.35); // koło jedzie trochę wolniej niż palec — łatwiej trafić w sąsiednią sekcję
@@ -394,13 +432,11 @@
       if (p < 0) p = -Math.pow(-p, 0.6) * 0.45; else if (p > max) p = max + Math.pow(p - max, 0.6) * 0.45; // gumka na końcach
       pos = p; layout(pos);
       const t = performance.now(); samples.push([t, pos]); while (samples.length > 2 && t - samples[0][0] > 90) samples.shift();
-      const r = Math.round(Math.max(0, Math.min(max, pos)));
-      if (r !== el._tick) { el._tick = r; vibrate(4); }
     });
     const end = e => {
       if (e.pointerId !== id) return;
       id = null; el.classList.remove('drag');
-      if (!dragMoved) { if (axis === 'x') navTo(cur); return; }
+      if (!dragMoved) { zipLive = false; el.classList.remove('zip'); if (axis === 'x') navTo(cur); return; }
       const [t0, p0] = samples[0], [t1, p1] = samples[samples.length - 1];
       const v = t1 > t0 ? (p1 - p0) / ((t1 - t0) / 1000) : 0;
       const target = Math.round(pos + Math.max(-0.55, Math.min(0.55, v * 0.12))); // szybkie machnięcie = najwyżej jedna sekcja dalej
