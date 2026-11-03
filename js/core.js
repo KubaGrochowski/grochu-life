@@ -203,15 +203,22 @@
   /* ================================================================ wspólne narzędzia ================================================================ */
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const vibrate = p => { try { navigator.vibrate?.(p); } catch (_) { } };
-  // Krótki „tik” dotykowy. Android: Vibration API. iPhone (Safari 18+) nie ma vibrate, ale przełączenie
-  // ukrytego <input type="checkbox" switch> daje systemowy tik — używamy go jako zapasu.
-  let hapEl = null, hapT = 0;
+  // Krótki „tik” dotykowy. Android: Vibration API. iPhone/iPad (iOS 18+) nie ma vibrate — tam tik daje system,
+  // gdy przełącza się <input type="checkbox" switch>: za każdym razem nowa, niewidoczna etykieta w <head>,
+  // klik w nią i od razu usunięcie (tak samo jak biblioteka ios-haptics).
+  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  let hapT = 0;
   function haptic(ms = 5) {
-    const t = performance.now(); if (t - hapT < 26) return; hapT = t;
-    if ('vibrate' in navigator) { vibrate(ms); return; }
-    if (!/iP(hone|ad|od)/.test(navigator.userAgent)) return;
-    if (!hapEl) { hapEl = document.createElement('label'); hapEl.setAttribute('aria-hidden', 'true'); hapEl.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none'; hapEl.innerHTML = '<input type="checkbox" switch tabindex="-1">'; document.body.appendChild(hapEl); }
-    try { hapEl.click(); } catch (_) { }
+    const t = performance.now(); if (t - hapT < 24) return; hapT = t;
+    if (!IOS) { vibrate(ms); return; }
+    try {
+      const label = document.createElement('label'), input = document.createElement('input');
+      label.ariaHidden = 'true'; label.style.display = 'none';
+      input.type = 'checkbox'; input.setAttribute('switch', '');
+      label.appendChild(input); document.head.appendChild(label);
+      label.click();
+      document.head.removeChild(label);
+    } catch (_) { }
   }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let toastT = null;
@@ -419,6 +426,7 @@
     el.addEventListener('pointerdown', e => {
       if (e.button) return;
       id = e.pointerId; sx = e.clientX; sy = e.clientY; sp0 = pos; samples = [[performance.now(), pos]]; dragMoved = false; axis = null;
+      haptic(6); // chwyt koła
       cancelAnimationFrame(anim);
     });
     el.addEventListener('pointermove', e => {
