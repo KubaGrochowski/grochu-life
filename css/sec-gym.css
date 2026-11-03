@@ -11,10 +11,11 @@
 /* ================= ekran główny sekcji ================= */
 .s-gym .g-main { max-width: 640px; margin: 0 auto; }
 .s-gym .g-head { padding-inline: 16px; }
-.s-gym .g-gear { color: var(--ink-2); flex: none; }
-.s-gym .g-gear:hover { color: var(--ink); }
-.s-gym .g-gear svg { transition: transform .6s var(--spring); }
-.s-gym .g-gear:active svg { transform: rotate(90deg); }
+.s-gym .g-find { color: var(--ink-2); flex: none; transition: transform .3s var(--spring), color .25s, background .25s, border-color .25s; }
+.s-gym .g-find svg { width: 18px; height: 18px; transition: transform .45s var(--spring); }
+.s-gym .g-find:hover { color: var(--ink); }
+.s-gym .g-find.on { color: #fff; background: var(--acc-grad); border-color: rgba(255, 255, 255, .1); box-shadow: 0 8px 22px -10px var(--crimson-glow); }
+.s-gym .g-find.on svg { transform: rotate(-12deg) scale(1.08); }
 .s-gym .g-tabs { margin: 0 16px 16px; }
 .s-gym .g-view { padding: 0 16px; }
 .s-gym .g-view { padding-bottom: 84px; } /* miejsce na + albo pasek „Wróć” */
@@ -79,7 +80,7 @@
 .s-gym .wcard:hover { border-color: rgba(216, 65, 63, .28); }
 .s-gym .wc-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .s-gym .wc-d { color: var(--acc-hi); font-weight: 600; font-size: 14px; }
-.s-gym .wc-t { font: 500 12px var(--mono); color: var(--ink-3); white-space: nowrap; }
+.s-gym .wc-t { display: grid; justify-items: end; gap: 1px; font: 500 12px var(--font); color: var(--ink-3); white-space: nowrap; text-align: right; }
 .s-gym .wc-n { display: block; font-weight: 700; font-size: 18px; margin: 3px 0 8px; letter-spacing: -.01em; }
 .s-gym .wcard ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .s-gym .wcard li { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--ink-2); padding: 4px 0; border-top: 1px solid var(--line); }
@@ -417,10 +418,8 @@
 .s-gym .pr-n { font-weight: 600; font-size: 15px; }
 .s-gym .pr-d { font-size: 12.5px; color: var(--ink-3); }
 .s-gym .pr-v { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-top: 3px; font: 600 15px var(--mono); }
-.s-gym .pr-v .was { color: var(--ink-2); }
+.s-gym .pr-v span { color: var(--ink); }
 .s-gym .pr-v i { font-style: normal; color: var(--ink-3); }
-.s-gym .pr-v .now { color: var(--acc-hi); }
-.s-gym .pr-v .now em { font: 600 12px var(--font); font-style: normal; opacity: .8; }
 
 /* ================= Postępy ================= */
 .s-gym .sgrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -527,3 +526,19 @@
 @keyframes g-live-in { from { opacity: 0; transform: translate(-50%, 30px) scale(.94); } to { opacity: 1; transform: translateX(-50%); } }
 @keyframes g-ask-up { from { transform: translate(-50%, calc(100% + 40px)); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes g-ask-down { from { transform: translate(-50%, 0); opacity: 1; } to { transform: translate(-50%, calc(100% + 40px)); opacity: 0; } }
+
+/* ================= Waga (Postępy) ================= */
+.s-gym .bwlist { display: grid; margin: 0 -4px; }
+.s-gym .bwrow { display: grid; grid-template-columns: 1fr auto 64px; align-items: center; gap: 10px; padding: 11px 4px; border-bottom: 1px solid var(--line); text-align: left; color: var(--ink); border-radius: 10px; transition: background .2s; }
+.s-gym .bwrow:last-child { border-bottom: 0; }
+.s-gym .bwrow:hover { background: rgba(255, 255, 255, .03); }
+.s-gym .bwcard.enter .bwrow { animation: g-rise .45s var(--ease) backwards; animation-delay: calc(120ms + var(--i, 0) * 35ms); }
+.s-gym .bw-day { font-size: 14.5px; font-weight: 500; }
+.s-gym .bw-v { font: 600 15px var(--mono); font-variant-numeric: tabular-nums; }
+.s-gym .bw-d { justify-self: end; font: 600 13px var(--mono); color: var(--ink-2); white-space: nowrap; }
+.s-gym .bw-more { align-self: center; color: var(--ink-2); font-size: 13.5px; font-weight: 600; padding: 4px 10px; }
+.s-gym .bw-add { flex: none; }
+.s-gym .bw-in { width: 100%; text-align: center; background: none; border: 0; outline: 0; color: var(--ink); padding: 0; }
+.s-gym .ed-num:has(.bw-in) { flex-direction: column; align-items: center; }
+.s-gym .ed-num small { color: var(--ink-3); font-size: 13px; margin-top: -4px; }
+.s-gym .bw-del { margin-top: 10px; background: transparent; color: var(--acc-hi); border-color: rgba(216, 65, 63, .4); box-shadow: none; }

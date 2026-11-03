@@ -17,3 +17,6 @@
 .s-account .acc-ver { text-align: center; color: var(--dim); font-size: 13px; }
 .s-account .acc-ver em { font-style: normal; color: var(--crimson-hi); }
 .s-account .chip.spin::before { content: ''; width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: gl-spin .7s linear infinite; }
+.s-account .acc-set { display: grid; gap: 8px; }
+.s-account .acc-set > .eyebrow { padding-left: 4px; }
+.s-account .acc-set .ilist { margin-bottom: 0; }
