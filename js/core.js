@@ -203,23 +203,54 @@
   /* ================================================================ wspólne narzędzia ================================================================ */
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const vibrate = p => { try { navigator.vibrate?.(p); } catch (_) { } };
-  // Krótki „tik” dotykowy. Android: Vibration API. iPhone/iPad (iOS 18+) nie ma vibrate — tam tik daje system,
-  // gdy przełącza się <input type="checkbox" switch>: za każdym razem nowa, niewidoczna etykieta w <head>,
-  // klik w nią i od razu usunięcie (tak samo jak biblioteka ios-haptics).
-  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  // Krótki „tik” dotykowy. Android: Vibration API. iPhone/iPad nie ma vibrate, a od iOS 26.5 tik z kodu nie działa;
+  // tik daje tylko systemowy przełącznik <input type="checkbox" switch> pod prawdziwym palcem (patrz iosZip niżej).
+  const IOS = (typeof navigator.vibrate !== 'function' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)))
+    || (LOCAL && new URLSearchParams(location.search).has('ios'));   // podgląd lokalny: ?local&ios wymusza ścieżkę iPhone'a
   let hapT = 0;
   function haptic(ms = 5) {
+    if (IOS) { iosZip.tick(); return; }
     const t = performance.now(); if (t - hapT < 24) return; hapT = t;
-    if (!IOS) { vibrate(ms); return; }
-    try {
-      const label = document.createElement('label'), input = document.createElement('input');
-      label.ariaHidden = 'true'; label.style.display = 'none';
-      input.type = 'checkbox'; input.setAttribute('switch', '');
-      label.appendChild(input); document.head.appendChild(label);
-      label.click();
-      document.head.removeChild(label);
-    } catch (_) { }
+    vibrate(ms);
   }
+
+  /* iPhone: tiki w trakcie przeciągania (technika jak w bibliotece haptick, MIT).
+     Koło przykrywa niewidoczny przełącznik. Dotyk, który na nim się zaczął, WebKit śledzi przez całe przeciąganie
+     i porównuje palec z miejscem, gdzie przełącznik jest TERAZ. Żeby zagrać tik, przesuwamy przełącznik daleko
+     na stronę, po której jest jego gałka — następny ruch palca go przełącza, a to przełączenie to systemowy tik.
+     Gdy nie ma czego zagrać, przełącznik stoi daleko po drugiej stronie, więc palec go nie ruszy. */
+  const iosZip = (() => {
+    const ARM_MS = 260, GAP = 2, FAR = 10000;  // WebKit zaczyna śledzić ok. 200 ms po dotknięciu; tik najwyżej co 2 ruchy
+    let input = null, active = false, on = false, armedAt = 0, queued = 0, since = Infinity;
+    const place = side => { input.style.transform = `translateX(${side === 'L' ? -FAR : FAR}px)`; };
+    const flipSide = () => (on ? 'R' : 'L');   // gałka wyłączonego jest po lewej — tam przesuwamy, żeby ją przełączyć
+    const holdSide = () => (on ? 'L' : 'R');
+    function release(now) {
+      if (!queued || now < armedAt || since < GAP) return false;
+      queued = 0; since = 0; place(flipSide()); on = !on;
+      return true;
+    }
+    return {
+      mount(host) {
+        if (!IOS) return null;
+        input = document.createElement('input');
+        input.type = 'checkbox'; input.setAttribute('switch', ''); input.setAttribute('aria-hidden', 'true'); input.tabIndex = -1;
+        input.className = 'wheel-switch';
+        host.appendChild(input);
+        addEventListener('pointermove', () => {      // przed obsługą koła, żeby tik z tego ruchu wszedł od razu
+          if (!active) return;
+          since++;
+          if (!release(performance.now()) && performance.now() >= armedAt && !input.style.transform) place(holdSide());
+        }, { capture: true, passive: true });
+        const stop = () => { active = false; queued = 0; if (input) input.style.transform = ''; };
+        addEventListener('pointerup', stop, { capture: true });
+        addEventListener('pointercancel', stop, { capture: true });
+        return input;
+      },
+      begin() { if (!input) return; active = true; on = input.checked; armedAt = performance.now() + ARM_MS; queued = 0; since = Infinity; input.style.transform = ''; },
+      tick() { if (!active) return; queued = 1; release(performance.now()); },
+    };
+  })();
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let toastT = null;
   function toast(msg, { tone } = {}) {
@@ -305,14 +336,22 @@
     navItems = sections.map((s, i) => {
       const b = document.createElement('button');
       b.className = 'wi'; b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-label', s.label);
-      // pod ikoną niewidoczna etykieta z przełącznikiem: prawdziwe dotknięcie palcem przełącza go, a iOS 26.5+
-      // daje wtedy systemowy tik (tiku wywołanego z kodu iOS 26.5+ już nie przepuszcza)
-      b.innerHTML = `<span class="wi-ic">${s.icon}</span><label class="wi-hap" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>`;
-      b.addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; if (dragMoved) { e.preventDefault(); return; } navTo(i); });
+      b.innerHTML = `<span class="wi-ic">${s.icon}</span>`;
+      b.addEventListener('click', e => { if (dragMoved) { e.preventDefault(); return; } navTo(i); });
       track.appendChild(b);
       return b;
     });
     zipEl = navEl.querySelector('.wheel-zip');
+    // iPhone: przełącznik na całym kole. Dotknięcie bez przesuwania = tik + przejście do ikony pod palcem.
+    const sw = iosZip.mount(navEl);
+    if (sw) sw.addEventListener('click', e => {
+      e.stopPropagation();
+      if (performance.now() - dragEndAt < 400) return;   // klik, który WebKit wysyła na końcu przeciągania
+      sw.style.pointerEvents = 'none';
+      const hit = document.elementFromPoint(e.clientX || lastX, e.clientY || lastY)?.closest('.wi');
+      sw.style.pointerEvents = '';
+      const i = navItems.indexOf(hit); if (i >= 0) navTo(i);
+    });
     setLabel(cur, true);
     bindDrag(navEl);
     addEventListener('resize', () => layout(pos));
@@ -422,19 +461,21 @@
     sections.forEach(s => { if (s !== sections[i]) return; s.el.style.filter = ''; s.el.style.transform = ''; s.el.style.borderRadius = ''; });
   }
 
-  let dragMoved = false;
+  let dragMoved = false, dragEndAt = 0, lastX = 0, lastY = 0;
   function bindDrag(el) {
     let sx = 0, sp0 = 0, samples = [], id = null, sy = 0, axis = null;
     el.addEventListener('pointerdown', e => {
       if (e.button) return;
-      id = e.pointerId; sx = e.clientX; sy = e.clientY; sp0 = pos; samples = [[performance.now(), pos]]; dragMoved = false; axis = null;
-      haptic(6); // chwyt koła
+      id = e.pointerId; sx = lastX = e.clientX; sy = lastY = e.clientY; sp0 = pos; samples = [[performance.now(), pos]]; dragMoved = false; axis = null;
+      iosZip.begin();
+      if (!IOS) haptic(6); // chwyt koła
       cancelAnimationFrame(anim);
     });
     el.addEventListener('pointermove', e => {
       if (e.pointerId !== id) return;
-      const dx = e.clientX - sx, dy = e.clientY - sy;
-      if (!axis) { if (Math.hypot(dx, dy) < 6) return; axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (axis === 'x') { try { el.setPointerCapture(id); } catch (_) { } el.classList.add('drag', 'zip'); zipLive = true; haptic(6); } }
+      const dx = e.clientX - sx, dy = e.clientY - sy; lastX = e.clientX; lastY = e.clientY;
+      // na iPhonie bez przechwytywania wskaźnika: dotyk i tak trzyma się przełącznika, a przechwycenie psułoby jego śledzenie
+      if (!axis) { if (Math.hypot(dx, dy) < 6) return; axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (axis === 'x') { if (!IOS) { try { el.setPointerCapture(id); } catch (_) { } } el.classList.add('drag', 'zip'); zipLive = true; haptic(6); } }
       if (axis !== 'x') return;
       dragMoved = true;
       let p = sp0 - dx / (SPACING() * 1.35); // koło jedzie trochę wolniej niż palec — łatwiej trafić w sąsiednią sekcję
@@ -446,10 +487,11 @@
     const end = e => {
       if (e.pointerId !== id) return;
       id = null; el.classList.remove('drag');
-      if (!dragMoved) { zipLive = false; el.classList.remove('zip'); if (axis === 'x') navTo(cur); return; }
+      if (!dragMoved) { zipLive = false; el.classList.remove('zip'); if (axis) dragEndAt = performance.now(); if (axis === 'x') navTo(cur); return; }
       const [t0, p0] = samples[0], [t1, p1] = samples[samples.length - 1];
       const v = t1 > t0 ? (p1 - p0) / ((t1 - t0) / 1000) : 0;
       const target = Math.round(pos + Math.max(-0.55, Math.min(0.55, v * 0.12))); // szybkie machnięcie = najwyżej jedna sekcja dalej
+      dragEndAt = performance.now();
       navTo(target, v);
       setTimeout(() => { dragMoved = false; }, 0);
     };
