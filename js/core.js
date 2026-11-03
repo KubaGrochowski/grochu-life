@@ -305,8 +305,10 @@
     navItems = sections.map((s, i) => {
       const b = document.createElement('button');
       b.className = 'wi'; b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-label', s.label);
-      b.innerHTML = `<span class="wi-ic">${s.icon}</span>`;
-      b.addEventListener('click', e => { if (dragMoved) { e.preventDefault(); return; } navTo(i); });
+      // pod ikoną niewidoczna etykieta z przełącznikiem: prawdziwe dotknięcie palcem przełącza go, a iOS 26.5+
+      // daje wtedy systemowy tik (tiku wywołanego z kodu iOS 26.5+ już nie przepuszcza)
+      b.innerHTML = `<span class="wi-ic">${s.icon}</span><label class="wi-hap" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>`;
+      b.addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; if (dragMoved) { e.preventDefault(); return; } navTo(i); });
       track.appendChild(b);
       return b;
     });
