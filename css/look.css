@@ -1,0 +1,64 @@
+/* Grochu life — wygląd jak Grochu Privates: Instrument Serif w tytułach i dużych liczbach, Geist w tekście,
+   Geist Mono w małych liczbach, spokojne płaskie kafle z cienką ramką. Kolory zostają nasze (węgiel, leśna zieleń, crimson).
+   Wczytywany na końcu, więc nadpisuje style sekcji tylko w typografii i kształtach. */
+
+:root { --r-l: 24px; --r-xl: 28px; --line: rgba(255, 255, 255, .075); --line-2: rgba(255, 255, 255, .12); }
+body { font-size: 15px; line-height: 1.5; text-rendering: optimizeLegibility; }
+
+/* ---------- tytuły: szeryf, kropka w kolorze akcentu ---------- */
+.sec-title { font-family: var(--serif); font-weight: 400; font-size: clamp(46px, 12vw, 64px); letter-spacing: -.02em; line-height: 1; }
+.sec-title::after { content: '.'; color: var(--crimson-hi); }
+.sec-head { padding-top: calc(26px + var(--safe-t)); padding-bottom: 18px; align-items: center; }
+.auth-brand h1 { font-family: var(--serif); font-weight: 400; font-size: 60px; letter-spacing: -.02em; line-height: 1; }
+.auth-brand h1 i { font-style: normal; color: var(--crimson-hi); }
+.s-account .acc-ver em { font-style: normal; }
+
+/* ---------- duże liczby: szeryf, ciasno, cyfry równej szerokości ---------- */
+.s-habits .hb-pct,
+.s-habits .scard strong,
+.s-habits .ttime,
+.s-habits .ed-val input,
+.s-diet .ring-t b,
+.s-diet .scard strong,
+.s-diet .qk input,
+.s-diet .goal-k input,
+.s-gym .mcard b,
+.s-gym .ed-val .sv,
+.s-gym .tring b,
+.s-gym .sumtiles b,
+.s-gym .ring-t b {
+  font-family: var(--serif); font-weight: 400; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: .95;
+}
+.s-habits .hb-pct { font-size: clamp(68px, 18vw, 96px); }
+.s-habits .scard strong, .s-diet .scard strong { font-size: 40px; }
+.s-habits .ttime { font-size: 40px; }
+.s-habits .ed-val input, .s-gym .ed-val .sv { font-size: 54px; }
+.s-diet .ring-t b { font-size: 58px; }
+.s-diet .qk input { font-size: 54px; }
+.s-diet .goal-k input { font-size: 48px; }
+.s-gym .mcard b { font-size: 46px; }
+.s-gym .tring b { font-size: 76px; }
+.s-gym .sumtiles b { font-size: 42px; }
+.s-gym .ring-t b { font-size: 46px; }
+/* nagłówki ekranów szczegółów i nazwa treningu */
+.s-gym h1.big, .s-gym .wname { font-family: var(--serif); font-weight: 400; letter-spacing: -.02em; }
+.s-gym h1.big { font-size: 42px; line-height: 1.02; }
+.s-gym .wname { font-size: 38px; }
+.s-gym .bw-v { font-family: var(--serif); font-weight: 400; font-size: 24px; letter-spacing: -.02em; }
+
+/* ---------- kafle: płaskie, cienka ramka, większe zaokrąglenie ---------- */
+.card { background: var(--surface); border-radius: var(--r-l); }
+.s-gym { --card: 24px; }
+.s-habits .scard, .s-diet .scard, .s-gym .scard, .s-gym .wcard { border-radius: 24px; }
+.s-gym .scard, .s-gym .wcard, .s-gym .ilist { background: var(--surface); }
+.s-gym .wcard { padding: 20px; }
+
+/* ---------- przyciski: mniej połysku ---------- */
+.btn-primary, .s-gym .primary { background: var(--crimson); box-shadow: 0 8px 22px -12px var(--crimson-glow); }
+.btn-primary:hover { box-shadow: 0 10px 26px -10px var(--crimson-glow); }
+.btn, .seg-b, .chip { font-weight: 500; }
+.seg::before { background: var(--crimson); box-shadow: 0 6px 16px -10px var(--crimson-glow); }
+
+/* ---------- drobne napisy ---------- */
+.eyebrow { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .08em; }
+.wheel-label span { font-weight: 500; font-size: 13px; letter-spacing: .02em; text-transform: none; }

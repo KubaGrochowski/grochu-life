@@ -1,7 +1,7 @@
 /* Grochu life — sekcja Konto: e-mail, ustawienia sekcji (GL.settings), stan synchronizacji, wylogowanie. */
 (() => {
   'use strict';
-  const VERSION = 3;
+  const VERSION = 4;
   const NAMES = { gym: 'Siłownia', habits: 'Nawyki', diet: 'Dieta' };
   const STATUS = { idle: 'czeka', syncing: 'wysyłam…', ok: 'zsynchronizowane', offline: 'offline', error: 'błąd' };
 
@@ -37,7 +37,7 @@
             ${setHtml()}
             <div class="acc-sync card rise" style="--d:${n + 1}">${syncHtml()}</div>
             <button class="btn btn-danger btn-block rise" style="--d:${n + 2}" id="acc-out"${cloud.local ? ' disabled' : ''}>Wyloguj się</button>
-            <p class="acc-ver rise" style="--d:${n + 3}">Grochu <em>life</em> · wersja ${VERSION}</p>
+            <p class="acc-ver rise" style="--d:${n + 3}">Grochu life<em>.</em> · wersja ${VERSION}</p>
           </div>`;
         settings().forEach(p => p.segAnim?.(root.querySelector(`[data-set-of="${p.id}"]`)));
       }

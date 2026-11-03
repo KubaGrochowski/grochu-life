@@ -3,7 +3,7 @@
 Jedna aplikacja zamiast trzech: **Siłownia** (dawny Traincker), **Nawyki** (Habbitcker) i **Dieta** (Foodcker), plus **Konto**.
 Czysty HTML/CSS/JS, bez budowania. Konto i dane z tego samego projektu Supabase co dotychczasowe aplikacje — logujesz się tym samym e-mailem i hasłem, a nawyki, posiłki i treningi wczytują się z chmury.
 
-Motyw: czarny węgiel `#171717`, leśna zieleń `#06110C`, crimson `#A31C1B`.
+Motyw: czarny węgiel `#171717`, leśna zieleń `#06110C`, crimson `#A31C1B`. Czcionki i styl jak w Grochu Privates: Instrument Serif (tytuły z kropką, duże liczby), Geist (tekst), Geist Mono (małe liczby) — `css/look.css`.
 
 ## Nawigacja
 

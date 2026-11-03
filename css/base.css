@@ -23,8 +23,9 @@
   --warn: #E0973F;
   --accent: var(--crimson);
   --accent-hi: var(--crimson-hi);
-  --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --serif: 'Instrument Serif', ui-serif, Georgia, serif;   /* tytuły i duże liczby (jak w Grochu Privates) */
+  --mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', monospace;
   --r-s: 10px; --r: 16px; --r-l: 22px; --r-xl: 28px;
   --ease: cubic-bezier(.2, .8, .2, 1);
   --ease-in: cubic-bezier(.6, 0, .8, .4);
