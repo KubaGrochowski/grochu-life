@@ -1169,7 +1169,7 @@
       const rows = shown.map(([k, v], i) => {
         const prev = list[list.indexOf(shown[i]) + 1], d = prev ? dispW(v) - dispW(prev[1]) : 0;
         const arrow = !prev ? '' : Math.abs(d) < 0.05 ? '<span class="bw-d eq">=</span>' : `<span class="bw-d ${d > 0 ? 'up' : 'down'}">${d > 0 ? '↑' : '↓'} ${nf(Math.abs(d), 1)}</span>`;
-        return `<button class="bwrow" data-bw="${k}" style="--i:${i}"><span class="bw-day">${dateLabel(fromKey(k).getTime())}</span><b class="bw-v">${fmtW(v)} ${U()}</b>${arrow}</button>`;
+        return `<button class="bwrow" data-bw="${k}" style="--i:${i}"><span class="bw-day">${dateLabel(fromKey(k).getTime())}</span><b class="bw-v">${(+dispW(v)).toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${U()}</b>${arrow}</button>`;
       }).join('');
       return `<header><div><h3>Waga</h3></div><button class="chip bw-add" data-bw="">+ Dodaj</button></header>
         ${list.length ? `<div class="bwlist">${rows}</div>${list.length > 8 ? `<button class="bw-more" data-bwall>${bwAll ? 'Pokaż mniej' : `Pokaż wszystkie (${list.length})`}</button>` : ''}` : '<p class="empty" style="padding:8px 0 4px">Dodaj pierwsze ważenie</p>'}`;
@@ -1495,6 +1495,21 @@
     if (rest) { if (rest.end > Date.now()) { restInt = setInterval(tickRest, 250); } else { rest = null; try { localStorage.removeItem(REST_KEY); } catch (_) { } } }
     render();
     if (migrated) { migrated = false; setTimeout(save, 0); } // dane po zmianie biblioteki trafiają też do chmury
+
+    // jednorazowo: ważenia podane przez użytkownika (maj–listopad 2026). Dopisywane dopiero po pierwszej udanej synchronizacji
+    // (żeby nie zgadywać, co już jest w chmurze); jeśli któryś z tych dni już jest zapisany, nic nie robi.
+    const BW_SEED = { '2026-11-02': 82.8, '2026-10-26': 82.6, '2026-10-19': 82.0, '2026-10-12': 81.6, '2026-10-05': 81.3, '2026-09-28': 80.1, '2026-09-21': 79.5, '2026-09-08': 80.6, '2026-07-19': 82.3, '2026-07-07': 81.1, '2026-06-15': 83.0, '2026-06-09': 82.3, '2026-06-07': 82.3, '2026-05-29': 81.0 };
+    const BW_SEED_KEY = 'glife.gym.bwseed1';
+    function seedWeights() {
+      try { if (localStorage.getItem(BW_SEED_KEY)) return true; } catch (_) { return true; }
+      const ready = ctx.cloud.local || ctx.cloud.stores.find(x => x.id === 'gym')?.status === 'ok';
+      if (!ready || !ctx.cloud.user) return false;
+      if (!state.body) state.body = {};
+      if (!Object.keys(BW_SEED).some(k => state.body[k])) { Object.assign(state.body, BW_SEED); save(); render(); }
+      try { localStorage.setItem(BW_SEED_KEY, '1'); } catch (_) { }
+      return true;
+    }
+    setTimeout(() => { if (!seedWeights()) { const off = ctx.cloud.onChange(() => { if (seedWeights()) off(); }); } }, 0);
 
     return {
       getState: () => state,

@@ -1,7 +1,7 @@
 /* Grochu life — sekcja Konto: e-mail, ustawienia sekcji (GL.settings), stan synchronizacji, wylogowanie. */
 (() => {
   'use strict';
-  const VERSION = 2;
+  const VERSION = 3;
   const NAMES = { gym: 'Siłownia', habits: 'Nawyki', diet: 'Dieta' };
   const STATUS = { idle: 'czeka', syncing: 'wysyłam…', ok: 'zsynchronizowane', offline: 'offline', error: 'błąd' };
 
