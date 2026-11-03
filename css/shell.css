@@ -1,0 +1,68 @@
+/* Grochu life — szkielet: tło, scena z sekcjami, dolne koło nawigacji, ekran logowania. */
+
+/* ---------- żywe tło: wolno dryfujące poświaty ---------- */
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: radial-gradient(120% 80% at 50% 0%, #0b1d14 0%, var(--forest) 55%, #030805 100%); }
+.bg i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; will-change: transform; }
+.bg-a { width: 70vmax; height: 70vmax; left: -25vmax; top: -30vmax; background: radial-gradient(circle, rgba(19, 64, 41, .55), transparent 65%); animation: bg-drift-a 26s ease-in-out infinite alternate; }
+.bg-b { width: 55vmax; height: 55vmax; right: -28vmax; top: 20vh; background: radial-gradient(circle, rgba(163, 28, 27, .22), transparent 65%); animation: bg-drift-b 32s ease-in-out infinite alternate; }
+.bg-c { width: 60vmax; height: 40vmax; left: 10vw; bottom: -26vmax; background: radial-gradient(circle, rgba(23, 23, 23, .9), transparent 70%); animation: bg-drift-a 40s ease-in-out infinite alternate-reverse; }
+@keyframes bg-drift-a { to { transform: translate(8vmax, 6vmax) scale(1.12); } }
+@keyframes bg-drift-b { to { transform: translate(-10vmax, -8vmax) scale(.9); } }
+body[data-sec="gym"] .bg-b { opacity: .65; }
+
+/* ---------- scena: sekcje leżą obok siebie, przesuwane razem z kołem ---------- */
+.stage { position: fixed; inset: 0; z-index: 1; perspective: 1400px; overflow: hidden; overflow: clip; }
+.sec { position: absolute; inset: 0; transform-origin: 50% 60%; will-change: transform, opacity; overflow: hidden; backface-visibility: hidden; overflow: clip; }
+.sec-scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--coal-3) transparent; }
+.sec-body { min-height: 100%; padding-bottom: calc(var(--nav-h) + 24px); max-width: 1100px; margin: 0 auto; }
+.layers { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.sec-layer { position: absolute; inset: 0; pointer-events: none; visibility: hidden; }
+.sec-layer.on { visibility: visible; }
+.sec-layer.on > * { pointer-events: auto; }
+.gl-err { margin: 80px 20px; padding: 16px; border-radius: var(--r); background: var(--crimson-lo); color: var(--text); }
+
+/* ---------- dolne koło: łuk wygięty w dół, ikony jadą po łuku ---------- */
+.wheel { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; height: var(--nav-h); touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab; transition: transform .7s var(--ease), opacity .5s; }
+.wheel.drag { cursor: grabbing; }
+.wheel-arc { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 -12px 24px rgba(0, 0, 0, .55)); }
+.wheel-arc .wa-fill { opacity: .94; }
+.wheel-glow { position: absolute; left: 50%; bottom: calc(10px + var(--safe-b)); width: 180px; height: 90px; transform: translateX(-50%); background: radial-gradient(50% 60% at 50% 70%, rgba(163, 28, 27, .38), transparent 70%); pointer-events: none; animation: wheel-breathe 4.5s ease-in-out infinite; }
+@keyframes wheel-breathe { 50% { opacity: .55; transform: translateX(-50%) scale(1.12); } }
+.wheel-track { position: absolute; left: 50%; bottom: calc(50px + var(--safe-b)); width: 0; height: 0; }
+.wi { position: absolute; left: -27px; top: -27px; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); will-change: transform, opacity; --hot: 0; }
+.wi-ic { position: relative; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: rgba(23, 23, 23, calc(.85 - var(--hot) * .85)); border: 1px solid rgba(255, 255, 255, calc(.08 - var(--hot) * .02)); transition: color .3s; }
+.wi-ic::before { content: ''; position: absolute; inset: -1px; border-radius: 50%; background: radial-gradient(circle at 50% 30%, #c52a27, var(--crimson) 60%, #6e1211); opacity: var(--hot); box-shadow: 0 0 calc(var(--hot) * 26px) calc(var(--hot) * 2px) var(--crimson-glow), inset 0 1px 0 rgba(255, 255, 255, .2); }
+.wi-ic::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid rgba(216, 65, 63, calc(var(--hot) * .35)); }
+.wi svg { position: relative; width: 25px; height: 25px; color: color-mix(in srgb, #fff calc(var(--hot) * 100%), var(--muted)); }
+.wi[aria-selected="true"] .wi-ic::after { animation: wheel-ring 2.6s var(--ease) infinite; }
+@keyframes wheel-ring { 0% { transform: scale(.9); opacity: 1; } 70%, 100% { transform: scale(1.35); opacity: 0; } }
+.wheel-label { position: absolute; left: 0; right: 0; bottom: calc(4px + var(--safe-b)); height: 20px; display: grid; place-items: center; pointer-events: none; }
+.wheel-label span { grid-area: 1 / 1; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--text); text-shadow: 0 0 18px var(--crimson-glow); white-space: nowrap; }
+body.gate .wheel { transform: translateY(110%); opacity: 0; }
+body.layer-full .wheel { transform: translateY(110%); opacity: 0; pointer-events: none; }
+body.entering .stage { animation: enter-stage 1s var(--ease) both; }
+body.entering .wheel { transition-delay: .25s; }
+@keyframes enter-stage { from { opacity: 0; transform: scale(1.06); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+body.gate .stage { visibility: hidden; }
+
+/* ---------- ekran logowania ---------- */
+.auth { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px 20px calc(24px + var(--safe-b)); overflow-y: auto; opacity: 0; transition: opacity .6s var(--ease); }
+.auth.on { opacity: 1; }
+.auth.leave { opacity: 0; transform: scale(.96); filter: blur(8px); transition: opacity .7s var(--ease), transform .8s var(--ease), filter .7s; }
+.auth-card { width: min(400px, 100%); display: grid; gap: 18px; }
+.auth.on .auth-card > * { animation: gl-rise .7s var(--ease) both; }
+.auth.on .auth-card > :nth-child(2) { animation-delay: .08s; }
+.auth.on .auth-card > :nth-child(3) { animation-delay: .16s; }
+.auth.on .auth-card > :nth-child(4) { animation-delay: .24s; }
+.auth-brand { text-align: center; display: grid; justify-items: center; gap: 6px; margin-bottom: 8px; }
+.auth-logo { width: 88px; height: 88px; border-radius: 26px; display: grid; place-items: center; background: var(--coal); border: 1px solid var(--line); box-shadow: 0 20px 50px -18px var(--crimson-glow), 0 0 0 8px rgba(163, 28, 27, .06); animation: auth-float 5s ease-in-out infinite; }
+.auth-logo img { width: 72px; height: 72px; border-radius: 20px; }
+@keyframes auth-float { 50% { transform: translateY(-6px) rotate(-2deg); } }
+.auth-brand h1 { margin: 10px 0 0; font-size: 38px; font-weight: 800; letter-spacing: -.03em; }
+.auth-brand h1 em { font-style: normal; font-weight: 300; color: var(--crimson-hi); }
+.auth-brand p { margin: 0; color: var(--muted); font-size: 15px; }
+.auth-tabs { --n: 2; --i: 0; }
+.auth-tabs[data-m="up"] { --i: 1; }
+.auth-form { display: grid; gap: 14px; padding: 20px; border-radius: var(--r-xl); background: rgba(23, 23, 23, .78); border: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+.auth-err { margin: 0; color: var(--crimson-hi); font-size: 14px; animation: gl-rise .3s var(--ease) both; }
+.auth-note { text-align: center; color: var(--dim); font-size: 13px; margin: 0; }
