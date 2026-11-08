@@ -1184,9 +1184,9 @@
         ctx.vibrate([15, 60, 25]);
         if (calm()) return;
         el.pct.animate({ transform: ['scale(1)', 'scale(1.14)', 'scale(.98)', 'scale(1)'], color: ['#F3EFEA', '#ededed', '#ededed', '#F3EFEA'] }, { duration: 900, easing: 'ease-out' });
-        const off = 'inset 0 0 0 1px rgba(235, 235, 235, 0), 0 0 0 0 rgba(255, 255, 255, 0.0)';
+        const off = 'inset 0 0 0 1px rgba(226, 201, 157, 0), 0 0 0 0 rgba(255, 255, 255, 0.0)';
         [...list.querySelectorAll('.o-row[data-id]:not(.is-off)')].forEach((r, i) => {
-          r.animate({ boxShadow: [off, 'inset 0 0 0 1px rgba(235, 235, 235, .85), 0 0 28px 0 rgba(255, 255, 255, 0.171)', off], transform: ['none', 'scale(1.015)', 'none'] },
+          r.animate({ boxShadow: [off, 'inset 0 0 0 1px rgba(226, 201, 157, .85), 0 0 28px 0 rgba(212, 180, 131, 0.274)', off], transform: ['none', 'scale(1.015)', 'none'] },
             { duration: 700, delay: 120 + i * 80, easing: 'ease-out' });
           const w = document.createElement('i'); w.className = 'hb-wave'; r.appendChild(w);
           w.animate({ transform: ['translateX(-100%)', 'translateX(100%)'], opacity: [0, 1, 0] }, { duration: 900, delay: 120 + i * 80, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'both' }).onfinish = () => w.remove();
@@ -1216,8 +1216,8 @@
         // koniec timera: jedno spokojne, crimsonowe pulsowanie kafelka
         if (timerDone) {
           const r = box.querySelector(`.o-row[data-id="${CSS.escape(timerDone)}"]`); timerDone = null;
-          const off = '0 0 0 0 rgba(255, 255, 255, 0.0), inset 0 0 0 1px rgba(235, 235, 235, 0)';
-          if (r && !calm()) r.animate({ boxShadow: [off, '0 0 36px 4px rgba(255, 255, 255, 0.158), inset 0 0 0 1px rgba(235, 235, 235, .75)', off] }, { duration: 1600, easing: 'ease-in-out' });
+          const off = '0 0 0 0 rgba(255, 255, 255, 0.0), inset 0 0 0 1px rgba(226, 201, 157, 0)';
+          if (r && !calm()) r.animate({ boxShadow: [off, '0 0 36px 4px rgba(212, 180, 131, 0.253), inset 0 0 0 1px rgba(226, 201, 157, .75)', off] }, { duration: 1600, easing: 'ease-in-out' });
         }
         // przy otwartym edytorze świętowanie czeka na jego zamknięcie
         if (party) { party = false; if (curSheet()) partyLater = true; else if (ctx.active) celebrate(); }

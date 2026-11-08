@@ -1,10 +1,10 @@
 /* Grochu life — szkielet: tło, scena z sekcjami, boczne menu, ekran logowania. */
 
 /* ---------- żywe tło: wolno dryfujące poświaty ---------- */
-.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: radial-gradient(120% 80% at 50% 0%, #0e0e0e 0%, var(--forest) 55%, #000000 100%); }
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: radial-gradient(120% 80% at 50% 0%, #13110E 0%, var(--forest) 55%, #000000 100%); }
 .bg i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; will-change: transform; }
-.bg-a { width: 70vmax; height: 70vmax; left: -25vmax; top: -30vmax; background: radial-gradient(circle, rgba(38, 38, 38, .55), transparent 65%); animation: bg-drift-a 26s ease-in-out infinite alternate; }
-.bg-b { width: 55vmax; height: 55vmax; right: -28vmax; top: 20vh; background: radial-gradient(circle, rgba(255, 255, 255, 0.099), transparent 65%); animation: bg-drift-b 32s ease-in-out infinite alternate; }
+.bg-a { width: 70vmax; height: 70vmax; left: -25vmax; top: -30vmax; background: radial-gradient(circle, rgba(44, 38, 30, .55), transparent 65%); animation: bg-drift-a 26s ease-in-out infinite alternate; }
+.bg-b { width: 55vmax; height: 55vmax; right: -28vmax; top: 20vh; background: radial-gradient(circle, rgba(212, 180, 131, 0.158), transparent 65%); animation: bg-drift-b 32s ease-in-out infinite alternate; }
 .bg-c { width: 60vmax; height: 40vmax; left: 10vw; bottom: -26vmax; background: radial-gradient(circle, rgba(23, 23, 23, .9), transparent 70%); animation: bg-drift-a 40s ease-in-out infinite alternate-reverse; }
 @keyframes bg-drift-a { to { transform: translate(8vmax, 6vmax) scale(1.12); } }
 @keyframes bg-drift-b { to { transform: translate(-10vmax, -8vmax) scale(.9); } }
@@ -96,7 +96,7 @@ body.gate .stage { visibility: hidden; }
 .auth.on .auth-card > :nth-child(3) { animation-delay: .16s; }
 .auth.on .auth-card > :nth-child(4) { animation-delay: .24s; }
 .auth-brand { text-align: center; display: grid; justify-items: center; gap: 6px; margin-bottom: 8px; }
-.auth-logo { width: 88px; height: 88px; border-radius: 26px; display: grid; place-items: center; background: var(--coal); border: 1px solid var(--line); box-shadow: 0 20px 50px -18px var(--crimson-glow), 0 0 0 8px rgba(255, 255, 255, 0.027); animation: auth-float 5s ease-in-out infinite; }
+.auth-logo { width: 88px; height: 88px; border-radius: 26px; display: grid; place-items: center; background: var(--coal); border: 1px solid var(--line); box-shadow: 0 20px 50px -18px var(--crimson-glow), 0 0 0 8px rgba(212, 180, 131, 0.043); animation: auth-float 5s ease-in-out infinite; }
 .auth-logo img { width: 72px; height: 72px; border-radius: 20px; }
 @keyframes auth-float { 50% { transform: translateY(-6px) rotate(-2deg); } }
 .auth-brand h1 { margin: 10px 0 0; font-size: 38px; font-weight: 800; letter-spacing: -.03em; }

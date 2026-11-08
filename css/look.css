@@ -1,5 +1,5 @@
 /* Grochu life — wygląd jak Grochu Privates: Instrument Serif w tytułach i dużych liczbach, Geist w tekście,
-   Geist Mono w małych liczbach, spokojne płaskie kafle z cienką ramką. Paleta: czerń i szarości, detale w odcieniach różu i fioletu (--hue każdej sekcji).
+   Geist Mono w małych liczbach, spokojne płaskie kafle z cienką ramką. Paleta: ciepła czerń i jeden akcent, szampańskie złoto.
    Wczytywany na końcu, więc nadpisuje style sekcji tylko w typografii i kształtach. */
 
 :root { --r-l: 24px; --r-xl: 28px; --line: rgba(255, 255, 255, .075); --line-2: rgba(255, 255, 255, .12); }
@@ -65,27 +65,17 @@ body { font-size: 15px; line-height: 1.5; text-rendering: optimizeLegibility; }
 /* ---------- czarno-szaro: kolor tylko w drobiazgach ---------- */
 .s-account .acc-ver em { color: var(--pop); }
 .bg-b { opacity: .25; }
-.btn-primary, .s-gym .primary, .seg::before { background: #3a3a3a; }
-.btn-primary:hover { background: #444; }
+.btn-primary, .s-gym .primary, .seg::before { background: var(--crimson); color: var(--on-gold); }
+.btn-primary:hover { background: #DDC296; }
 
 
-/* ---------- róż i fiolet: każda sekcja ma swój odcień, widoczny tylko w drobiazgach ---------- */
-.s-gym, .dr-item[data-sec="gym"], body[data-sec="gym"] .menu-btn { --hue: #F472B6; }
-.s-habits, .dr-item[data-sec="habits"], body[data-sec="habits"] .menu-btn { --hue: #E879F9; }
-.s-diet, .dr-item[data-sec="diet"], body[data-sec="diet"] .menu-btn { --hue: #C084FC; }
-.s-recipes, .dr-item[data-sec="recipes"], body[data-sec="recipes"] .menu-btn { --hue: #A78BFA; }
-.s-verses, .dr-item[data-sec="verses"], body[data-sec="verses"] .menu-btn { --hue: #8B9CF9; }
-.s-account, .dr-item[data-sec="account"], body[data-sec="account"] .menu-btn { --hue: #F9A8D4; }
-/* kropki w nazwie aplikacji: gradient róż → fiolet */
-.dr-brand i, .auth-brand h1 i, .s-account .acc-ver em { background: var(--pop-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-/* przycisk menu i lista: ikona bieżącej sekcji w jej odcieniu */
-.mb-ic svg { color: var(--hue); transition: color .4s; }
-.menu-btn { box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 0 1px color-mix(in srgb, var(--hue, var(--pop)) 18%, transparent); }
-.dr-item:hover .dr-ic svg { color: var(--hue); }
-.dr-item.on .dr-ic { border-color: color-mix(in srgb, var(--hue) 45%, transparent); background: color-mix(in srgb, var(--hue) 12%, #1c1c1c); }
-.dr-item.on .dr-ic svg { color: var(--hue); }
+/* ---------- jeden akcent: szampańskie złoto ---------- */
+:root { --hue: var(--pop); }
+.dr-brand i, .auth-brand h1 i, .s-account .acc-ver em { color: var(--pop); }
+.mb-ic svg { color: var(--pop); }
+.dr-item:hover .dr-ic svg, .dr-item.on .dr-ic svg { color: var(--pop); }
 .dr-ic svg { transition: color .3s; }
-/* zaznaczone chipy i tło poświaty z nutą odcienia sekcji */
-.chip.on, .chip[aria-pressed="true"] { border-color: color-mix(in srgb, var(--hue, var(--pop)) 50%, transparent); }
-.bg-b { background: radial-gradient(circle, rgba(192, 132, 252, .14), transparent 65%) !important; opacity: .5 !important; }
-#gl-toast { border-color: color-mix(in srgb, var(--pop) 35%, transparent); }
+.dr-item.on .dr-ic { border-color: rgba(212, 180, 131, .4); background: #221E18; }
+.chip.on, .chip[aria-pressed="true"] { border-color: rgba(212, 180, 131, .5); color: var(--text); }
+.bg-b { background: radial-gradient(circle, rgba(212, 180, 131, .10), transparent 65%) !important; opacity: .55 !important; }
+#gl-toast { border-color: rgba(212, 180, 131, .3); }
