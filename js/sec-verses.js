@@ -33,17 +33,22 @@
         return all[n % all.length];
       }
 
+      const NCHEV = '<svg class="vs-nch" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const opened = new Set();   // karty z rozwiniętą notatką (zostają rozwinięte po odświeżeniu listy)
+      const noteHtml = v => v.note ? `<button type="button" class="vs-nt" data-note="${v.id}" aria-expanded="${opened.has(v.id)}"><span>Czego mnie uczy</span>${NCHEV}</button>
+        <div class="vs-nw"><div class="vs-ni"><p class="vs-note">${esc(v.note)}</p></div></div>` : '';
+      const card = (v, cls, extra = '') => `<article class="${cls}${opened.has(v.id) ? ' open' : ''}" ${extra} data-open="${v.id}" role="button" tabindex="0">`;
       function render(anim = true) {
         const all = list(), q = norm(query.trim());
-        const shown = q ? all.filter(v => norm(v.text).includes(q) || norm(v.ref).includes(q)) : all;
+        const shown = q ? all.filter(v => norm(v.text).includes(q) || norm(v.ref).includes(q) || norm(v.note).includes(q)) : all;
         const day = daily();
         root.innerHTML = `
           <header class="sec-head"><h1 class="sec-title">Wersety</h1><button class="btn btn-primary vs-add" data-add>${PLUS}Dodaj</button></header>
           <div class="vs">
-            ${day && !q ? `<article class="vs-day${anim ? ' rise' : ''}" data-open="${day.id}"><span class="eyebrow">Werset dnia</span><blockquote>${esc(day.text)}</blockquote><cite>${esc(day.ref)}</cite></article>` : ''}
+            ${day && !q ? `${card(day, 'vs-day' + (anim ? ' rise' : ''))}<span class="eyebrow">Werset dnia</span><blockquote>${esc(day.text)}</blockquote><cite>${esc(day.ref)}</cite>${noteHtml(day)}</article>` : ''}
             ${all.length > 4 ? `<label class="vs-search${anim ? ' rise' : ''}" style="--d:1">${SEARCH}<input type="search" placeholder="Szukaj w wersetach" value="${esc(query)}" autocomplete="off"></label>` : ''}
             ${all.length ? `<div class="vs-count${anim ? ' rise' : ''}" style="--d:1"><span>${shown.length} ${plural(shown.length)}</span></div>` : ''}
-            <div class="vs-list">${shown.map((v, i) => `<button class="vs-card${anim ? ' rise' : ''}${v.id === fresh ? ' fresh' : ''}" style="--d:${Math.min(i + 2, 12)}" data-open="${v.id}"><p>${esc(v.text)}</p><cite>${esc(v.ref)}</cite></button>`).join('')}</div>
+            <div class="vs-list">${shown.map((v, i) => `${card(v, 'vs-card' + (anim ? ' rise' : '') + (v.id === fresh ? ' fresh' : ''), `style="--d:${Math.min(i + 2, 12)}"`)}<p>${esc(v.text)}</p><cite>${esc(v.ref)}</cite>${noteHtml(v)}</article>`).join('')}</div>
             ${!all.length ? `<div class="vs-empty rise"><div class="vs-empty-ic">${BOOK}</div><p>Dodaj swój pierwszy werset</p></div>` : ''}
             ${q && !shown.length ? '<p class="empty">Nic nie pasuje do wyszukiwania</p>' : ''}
           </div>`;
@@ -52,12 +57,13 @@
       const plural = n => n === 1 ? 'werset' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'wersety' : 'wersetów';
 
       // formularz: wklejony tekst z odnośnikiem na końcu sam się rozdziela na treść i „gdzie”
-      function openForm(v) {
+      function openForm(v, focusNote) {
         const sh = ctx.sheet(`
           <div class="vs-sh-h"><h2>${v ? 'Edytuj werset' : 'Nowy werset'}</h2><button class="icon-btn" data-close aria-label="Zamknij">${X}</button></div>
           <div class="field"><label for="vs-text">Werset</label><textarea id="vs-text" rows="5" placeholder="Wklej treść wersetu">${esc(v?.text || '')}</textarea></div>
           <div class="field"><label for="vs-ref">Gdzie to jest</label><input id="vs-ref" type="text" placeholder="np. J 3,16 albo Flp 4,13" value="${esc(v?.ref || '')}" autocomplete="off" autocapitalize="words"></div>
           <p class="vs-hint" id="vs-hint" hidden></p>
+          <div class="field"><label for="vs-note">Czego mnie uczy <small>(opcjonalnie)</small></label><textarea id="vs-note" rows="4" placeholder="Twoje przemyślenia o tym wersecie">${esc(v?.note || '')}</textarea></div>
           <button class="btn btn-primary btn-block" id="vs-save">Zapisz</button>`, { cls: 's-verses vs-sheet' });
         const t = sh.el.querySelector('#vs-text'), r = sh.el.querySelector('#vs-ref'), hint = sh.el.querySelector('#vs-hint');
         const split = () => {
@@ -70,13 +76,16 @@
         t.addEventListener('paste', () => setTimeout(split, 0));
         t.addEventListener('blur', split);
         if (!v) setTimeout(() => t.focus(), 350);
+        else if (focusNote) setTimeout(() => sh.el.querySelector('#vs-note').focus(), 380);
         sh.el.querySelector('#vs-save').addEventListener('click', () => {
           split();
           const text = t.value.trim(), ref = r.value.trim();
           if (!text) { ctx.toast('Wpisz treść wersetu'); t.focus(); return; }
           if (!ref) { ctx.toast('Wpisz, gdzie jest ten werset'); r.focus(); return; }
           const id = v?.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-          state.verses[id] = { id, text, ref, at: v?.at || Date.now() };
+          const note = sh.el.querySelector('#vs-note').value.trim();
+          state.verses[id] = { id, text, ref, ...(note ? { note } : {}), at: v?.at || Date.now() };
+          if (note && !v?.note) opened.add(id);   // świeża notatka od razu widoczna pod wersetem
           save(); fresh = id; sh.close(); render(); ctx.toast(v ? 'Zapisano zmiany' : 'Dodano werset');
         });
       }
@@ -87,11 +96,13 @@
         const sh = ctx.sheet(`
           <div class="vs-sh-h"><span class="eyebrow">Werset</span><button class="icon-btn" data-close aria-label="Zamknij">${X}</button></div>
           <blockquote class="vs-big">${esc(v.text)}</blockquote><cite class="vs-big-ref">${esc(v.ref)}</cite>
+          ${v.note ? `<section class="vs-big-note"><span class="eyebrow">Czego mnie uczy</span><p>${esc(v.note)}</p></section>` : '<button class="vs-addnote" data-addnote>+ Dopisz, czego mnie uczy</button>'}
           <div class="vs-acts"><button class="btn" data-copy>Kopiuj</button><button class="btn" data-edit>Edytuj</button><button class="btn btn-danger" data-del>Usuń</button></div>`, { cls: 's-verses vs-sheet' });
         sh.el.querySelector('[data-copy]').addEventListener('click', async () => {
-          try { await navigator.clipboard.writeText(`${v.text}\n— ${v.ref}`); ctx.toast('Skopiowano'); } catch (_) { ctx.toast('Nie udało się skopiować'); }
+          try { await navigator.clipboard.writeText(`${v.text}\n— ${v.ref}${v.note ? `\n\n${v.note}` : ''}`); ctx.toast('Skopiowano'); } catch (_) { ctx.toast('Nie udało się skopiować'); }
         });
         sh.el.querySelector('[data-edit]').addEventListener('click', () => { sh.close(); setTimeout(() => openForm(v), 120); });
+        sh.el.querySelector('[data-addnote]')?.addEventListener('click', () => { sh.close(); setTimeout(() => openForm(v, true), 120); });
         const del = sh.el.querySelector('[data-del]');
         del.addEventListener('click', () => {
           if (!del.classList.contains('sure')) { del.classList.add('sure'); del.textContent = 'Na pewno?'; return; }
@@ -104,7 +115,17 @@
 
       root.addEventListener('click', e => {
         if (e.target.closest('[data-add]')) { openForm(null); return; }
+        const nt = e.target.closest('[data-note]');
+        if (nt) {
+          const c = nt.closest('[data-open]'), id = nt.dataset.note, on = !opened.has(id);
+          on ? opened.add(id) : opened.delete(id);
+          c.classList.toggle('open', on); nt.setAttribute('aria-expanded', on); ctx.vibrate(6);
+          return;
+        }
         const o = e.target.closest('[data-open]'); if (o) openVerse(o.dataset.open);
+      });
+      root.addEventListener('keydown', e => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('article[data-open]')) { e.preventDefault(); openVerse(e.target.dataset.open); }
       });
       root.addEventListener('input', e => {
         if (e.target.type !== 'search') return;

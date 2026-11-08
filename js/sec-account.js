@@ -1,7 +1,7 @@
 /* Grochu life — sekcja Konto: e-mail, ustawienia sekcji (wybór sekcji → jej ustawienia), stan synchronizacji, wylogowanie. */
 (() => {
   'use strict';
-  const VERSION = 15;
+  const VERSION = 16;
   const NAMES = { gym: 'Siłownia', habits: 'Nawyki', diet: 'Dieta', recipes: 'Przepisy', verses: 'Wersety' };
   const STATUS = { idle: 'czeka', syncing: 'wysyłam…', ok: 'zsynchronizowane', offline: 'offline', error: 'błąd' };
   const SET_KEY = 'glife.account.set';

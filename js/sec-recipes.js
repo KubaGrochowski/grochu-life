@@ -29,7 +29,7 @@
       const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
       const lines = s => String(s || '').split('\n').map(x => x.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, '').trim()).filter(Boolean);
       const pl = (n, a, b, c) => n === 1 ? a : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? b : c;
-      const meta = r => [r.time ? `<span>${CLOCK}${r.time} min</span>` : '', r.serv ? `<span>${PEOPLE}${r.serv} ${pl(+r.serv, 'porcja', 'porcje', 'porcji')}</span>` : ''].join('');
+      const meta = r => [r.time ? `<span>${CLOCK}około ${r.time} min</span>` : '', r.serv ? `<span>${PEOPLE}${r.serv} ${pl(+r.serv, 'porcja', 'porcje', 'porcji')}</span>` : ''].join('');
       const cover = (r, cls) => r.photo ? `<div class="${cls}" style="background-image:url('${r.photo}')"></div>` : `<div class="${cls} none"><span>${esc((r.name || '?')[0].toUpperCase())}</span></div>`;
 
       function render(anim = true) {
@@ -72,7 +72,7 @@
           <label class="rc-photo${photo ? ' has' : ''}" id="rc-photo" style="${photo ? `background-image:url('${photo}')` : ''}"><input type="file" accept="image/*" hidden><span>${CAMERA}<em>${photo ? 'Zmień zdjęcie' : 'Dodaj zdjęcie'}</em></span></label>
           <div class="field"><label for="rc-name">Nazwa</label><input id="rc-name" type="text" value="${esc(r?.name || '')}" placeholder="np. Owsianka z jabłkiem" autocomplete="off"></div>
           <div class="field"><label>Kategoria</label><div class="rc-pick">${CATS.map(c => `<button type="button" class="chip${pickCat === c ? ' on' : ''}" data-pick="${c}">${c}</button>`).join('')}</div></div>
-          <div class="rc-two"><div class="field"><label for="rc-time">Czas (min)</label><input id="rc-time" type="number" inputmode="numeric" min="0" value="${esc(r?.time || '')}" placeholder="30"></div>
+          <div class="rc-two"><div class="field"><label for="rc-time">Czas, około (min)</label><input id="rc-time" type="number" inputmode="numeric" min="0" value="${esc(r?.time || '')}" placeholder="30"></div>
           <div class="field"><label for="rc-serv">Porcje</label><input id="rc-serv" type="number" inputmode="numeric" min="0" value="${esc(r?.serv || '')}" placeholder="2"></div></div>
           <div class="field"><label for="rc-ingr">Składniki <small>— każdy w nowej linii</small></label><textarea id="rc-ingr" rows="6" placeholder="200 g płatków owsianych&#10;1 jabłko&#10;szczypta cynamonu">${esc((r?.ingr || []).join('\n'))}</textarea></div>
           <div class="field"><label for="rc-steps">Przygotowanie <small>— każdy krok w nowej linii</small></label><textarea id="rc-steps" rows="6" placeholder="Zagotuj mleko.&#10;Dodaj płatki i gotuj 5 minut.">${esc((r?.steps || []).join('\n'))}</textarea></div>

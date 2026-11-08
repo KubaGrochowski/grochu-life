@@ -39,3 +39,20 @@
 .s-verses .vs-acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
 .s-verses .vs-acts .btn { padding: 0 10px; }
 .s-verses .btn-danger.sure { background: var(--crimson); color: var(--on-gold); border-color: var(--crimson); }
+
+/* notatka „Czego mnie uczy”: pasek ze strzałką pod wersetem, rozwija się płynnie */
+.s-verses .vs-card, .s-verses .vs-day { cursor: pointer; }
+.s-verses .vs-nt { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-top: 2px; padding: 10px 0 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; font-weight: 500; text-align: left; transition: color .25s; }
+.s-verses .vs-nt:hover { color: var(--text); }
+.s-verses .vs-nch { color: var(--pop); transition: transform .45s var(--spring); }
+.s-verses .open .vs-nch { transform: rotate(180deg); }
+.s-verses .vs-nw { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s var(--ease); }
+.s-verses .open .vs-nw { grid-template-rows: 1fr; }
+.s-verses .vs-ni { overflow: hidden; min-height: 0; }
+.s-verses .vs-note { margin: 0; padding: 10px 12px; border-left: 2px solid var(--pop); border-radius: 0; background: rgba(212, 180, 131, .06); color: var(--text); font-size: 15px; line-height: 1.55; white-space: pre-wrap;
+  opacity: 0; transform: translateY(-6px); transition: opacity .35s var(--ease), transform .45s var(--ease); }
+.s-verses .open .vs-note { opacity: 1; transform: none; transition-delay: .12s; }
+.s-verses .vs-big-note { display: grid; gap: 8px; padding: 14px 16px; border-left: 2px solid var(--pop); background: rgba(212, 180, 131, .06); animation: gl-rise .5s .14s var(--ease) both; }
+.s-verses .vs-big-note p { margin: 0; font-size: 15.5px; line-height: 1.6; white-space: pre-wrap; }
+.s-verses .vs-addnote { justify-self: start; padding: 8px 0; color: var(--pop); font-size: 14px; font-weight: 500; animation: gl-rise .5s .14s var(--ease) both; }
+.s-verses .field label small { color: var(--dim); font-weight: 400; }
