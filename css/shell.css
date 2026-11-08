@@ -33,18 +33,23 @@ body[data-sec="gym"] .bg-b { opacity: .65; }
 .mb-ic svg { width: 20px; height: 20px; }
 .mb-l { font-weight: 500; font-size: 14.5px; }
 body.gate .menu-btn, body.layer-full .menu-btn { transform: translateY(160%); opacity: 0; pointer-events: none; }
-body.menu-open .menu-btn { transform: translateX(-30px) scale(.9); opacity: 0; pointer-events: none; }
+body.menu-open .menu-btn { transform: translateY(30px) scale(.9); opacity: 0; pointer-events: none; }
 
 /* niewidoczny systemowy przełącznik pod przyciskami menu: prawdziwe dotknięcie = tik na iPhonie */
 .hap { position: absolute; inset: 0; z-index: 3; border-radius: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hap input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 
-/* ---------- menu wysuwane z lewej ---------- */
+.edge-hint { position: fixed; z-index: 54; right: 3px; top: 50%; width: 4px; height: 54px; margin-top: -27px; border-radius: 4px; background: rgba(212, 180, 131, .32); pointer-events: none; animation: edge-hint 3.2s ease-in-out infinite; transition: opacity .4s, transform .5s var(--spring); }
+@keyframes edge-hint { 50% { opacity: .45; transform: translateX(-2px) scaleY(1.12); } }
+body.gate .edge-hint, body.layer-full .edge-hint, body.menu-open .edge-hint { opacity: 0; transform: translateX(8px); }
+@media (hover: hover) and (pointer: fine) { .edge-hint { display: none; } }
+
+/* ---------- menu wysuwane z prawej (przesunięcie palcem w lewo od prawej krawędzi) ---------- */
 .scrim { position: fixed; inset: 0; z-index: 70; background: rgba(0, 0, 0, .55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .45s var(--ease); }
 body.menu-open .scrim { opacity: 1; pointer-events: auto; }
-.drawer { position: fixed; z-index: 75; top: 0; bottom: 0; left: 0; width: min(320px, 84vw); display: flex; flex-direction: column; padding: calc(26px + var(--safe-t)) 16px calc(20px + var(--safe-b));
-  background: linear-gradient(180deg, #121212, #090909); border-right: 1px solid var(--line-2); border-radius: 0 30px 30px 0; box-shadow: 30px 0 80px -30px rgba(0, 0, 0, .9);
-  transform: translateX(-104%); transition: transform .6s cubic-bezier(.2, .9, .25, 1); will-change: transform; }
+.drawer { position: fixed; z-index: 75; top: 0; bottom: 0; right: 0; width: min(320px, 84vw); display: flex; flex-direction: column; padding: calc(26px + var(--safe-t)) 16px calc(20px + var(--safe-b));
+  background: linear-gradient(180deg, #16140F, #0B0A08); border-left: 1px solid var(--line-2); border-radius: 30px 0 0 30px; box-shadow: -30px 0 80px -30px rgba(0, 0, 0, .9);
+  transform: translateX(104%); transition: transform .6s cubic-bezier(.2, .9, .25, 1); will-change: transform; }
 body.menu-open .drawer { transform: none; }
 body.menu-drag .drawer, body.menu-drag .scrim, body.menu-drag .stage { transition: none; }
 .dr-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 4px; }
@@ -69,13 +74,13 @@ body.menu-open .dr-head, body.menu-open .dr-item, body.menu-open .dr-foot { anim
 body.menu-open .dr-head { animation-delay: 40ms; }
 body.menu-open .dr-foot { animation-delay: 380ms; }
 body.menu-open .dr-item .dr-ic { animation: dr-ic .7s var(--spring) both; animation-delay: calc(140ms + var(--i, 0) * 45ms); }
-@keyframes dr-in { from { opacity: 0; transform: translateX(-26px); filter: blur(3px); } to { opacity: 1; transform: none; filter: blur(0); } }
-@keyframes dr-ic { from { transform: scale(.6) rotate(-14deg); } to { transform: none; } }
+@keyframes dr-in { from { opacity: 0; transform: translateX(26px); filter: blur(3px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes dr-ic { from { transform: scale(.6) rotate(14deg); } to { transform: none; } }
 
 /* scena odsuwa się i przygasa, gdy menu jest otwarte */
-.stage { transition: transform .6s cubic-bezier(.2, .9, .25, 1), border-radius .6s, filter .5s; transform-origin: 0 50%; }
-body.menu-open .stage { transform: translateX(min(56px, 12vw)) scale(.93); border-radius: 28px; filter: brightness(.55); }
-body.menu-drag .stage { transform: translateX(calc(var(--menu-p, 0) * min(56px, 12vw))) scale(calc(1 - var(--menu-p, 0) * .07)); border-radius: calc(var(--menu-p, 0) * 28px); }
+.stage { transition: transform .6s cubic-bezier(.2, .9, .25, 1), border-radius .6s, filter .5s; transform-origin: 100% 50%; }
+body.menu-open .stage { transform: translateX(max(-56px, -12vw)) scale(.93); border-radius: 28px; filter: brightness(.55); }
+body.menu-drag .stage { transform: translateX(calc(var(--menu-p, 0) * max(-56px, -12vw))) scale(calc(1 - var(--menu-p, 0) * .07)); border-radius: calc(var(--menu-p, 0) * 28px); }
 
 /* sekcje: widoczna tylko bieżąca (i odchodząca w trakcie przejścia) */
 .sec { visibility: hidden; }

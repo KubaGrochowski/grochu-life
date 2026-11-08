@@ -299,7 +299,7 @@
     navigator.storage?.persist?.().catch(() => { });
   }
 
-  /* ---------- boczne menu: przycisk z ikoną i nazwą sekcji, wysuwana z lewej lista sekcji ---------- */
+  /* ---------- boczne menu: przycisk z ikoną i nazwą sekcji, wysuwana z prawej lista sekcji ---------- */
   const X_IC = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
   const BURGER = '<svg class="mb-burger" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M3 9h12M3 13h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
   let menuBtn, drawer, scrim, items = [], menuOpen = false;
@@ -385,21 +385,25 @@
     document.dispatchEvent(new CustomEvent('gl:section', { detail: sections[i].id }));
   }
 
-  // przesunięcie palcem od lewej krawędzi otwiera menu (menu jedzie za palcem); w otwartym menu przesunięcie w lewo je zamyka
+  // przesunięcie palcem w lewo od prawej krawędzi otwiera menu (menu jedzie za palcem); w otwartym menu przesunięcie w prawo je zamyka
+  const EDGE = 24;
+  const edgeOk = () => !menuOpen && !document.body.classList.contains('gate') && !document.body.classList.contains('layer-full');
   function bindEdgeSwipe() {
     let sx = 0, sy = 0, mode = null, axis = null, dx = 0;
     const W = () => drawer.offsetWidth || 300;
+    // dotyk zaczęty przy prawej krawędzi należy do menu: sekcje nie dostają go (np. przesunięcie nawyku w lewo = wyczyść)
+    addEventListener('pointerdown', e => { if (e.pointerType === 'touch' && edgeOk() && e.clientX > innerWidth - EDGE) e.stopPropagation(); }, true);
     addEventListener('touchstart', e => {
-      if (e.touches.length !== 1 || document.body.classList.contains('gate') || document.body.classList.contains('layer-full')) return;
+      if (e.touches.length !== 1) return;
       const t = e.touches[0]; sx = t.clientX; sy = t.clientY; axis = null; dx = 0;
-      mode = !menuOpen && sx < 22 ? 'open' : menuOpen && (drawer.contains(e.target) || e.target === scrim) ? 'close' : null;
+      mode = edgeOk() && sx > innerWidth - EDGE ? 'open' : menuOpen && (drawer.contains(e.target) || e.target === scrim) ? 'close' : null;
     }, { passive: true });
     addEventListener('touchmove', e => {
       if (!mode) return;
       const t = e.touches[0]; dx = t.clientX - sx;
       if (!axis) { if (Math.hypot(dx, t.clientY - sy) < 8) return; axis = Math.abs(dx) > Math.abs(t.clientY - sy) ? 'x' : 'y'; if (axis === 'y') { mode = null; return; } document.body.classList.add('menu-drag'); }
-      const w = W(), shown = mode === 'open' ? Math.max(0, Math.min(w, dx)) : Math.max(0, Math.min(w, w + dx));
-      drawer.style.transform = `translateX(${shown - w}px)`;
+      const w = W(), shown = mode === 'open' ? Math.max(0, Math.min(w, -dx)) : Math.max(0, Math.min(w, w - dx));
+      drawer.style.transform = `translateX(${w - shown}px)`;
       scrim.style.opacity = String(shown / w);
       document.body.style.setProperty('--menu-p', (shown / w).toFixed(3));
     }, { passive: true });
@@ -408,8 +412,8 @@
       const m = mode; mode = null;
       document.body.classList.remove('menu-drag'); document.body.style.removeProperty('--menu-p');
       if (axis !== 'x') return;
-      if (m === 'open') { if (dx > 70) { haptic(6); openMenu(); } else { drawer.style.transform = ''; scrim.style.opacity = ''; } }
-      else if (dx < -60) closeMenu(); else { drawer.style.transform = ''; scrim.style.opacity = ''; }
+      if (m === 'open') { if (dx < -70) { haptic(6); openMenu(); } else { drawer.style.transform = ''; scrim.style.opacity = ''; } }
+      else if (dx > 60) closeMenu(); else { drawer.style.transform = ''; scrim.style.opacity = ''; }
     });
   }
 

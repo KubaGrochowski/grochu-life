@@ -7,7 +7,7 @@ Motyw: ciepła czerń i jeden akcent, szampańskie złoto `#D4B483` (`--pop`, `-
 
 ## Nawigacja
 
-W lewym dolnym rogu jest przycisk z ikoną i nazwą bieżącej sekcji. Dotknięcie (albo przesunięcie palcem od lewej krawędzi ekranu) wysuwa z lewej menu z listą sekcji: ikona i nazwa, bieżąca oznaczona czerwoną kropką. Aplikacja pamięta ostatnio otwartą sekcję.
+W lewym dolnym rogu jest przycisk z ikoną i nazwą bieżącej sekcji. Dotknięcie (albo przesunięcie palcem w lewo od prawej krawędzi ekranu) wysuwa z prawej menu z listą sekcji: ikona i nazwa, bieżąca oznaczona złotą kropką. Przesunięcie w prawo je chowa. Aplikacja pamięta ostatnio otwartą sekcję.
 
 ## Uruchomienie lokalnie
 
