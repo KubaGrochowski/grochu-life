@@ -521,7 +521,7 @@
       if (!calm()) {
         // odhaczenie: numer serii „pyka”, wiersz krótko się podświetla, krąg rozchodzi się jak na wodzie
         row.querySelector('.sn').animate({ transform: ['scale(.6)', 'scale(1.22)', 'scale(1)'] }, { duration: 420, easing: 'cubic-bezier(.34,1.56,.64,1)' });
-        row.animate({ backgroundColor: ['rgba(163,28,27,.22)', 'rgba(163,28,27,0)'] }, { duration: 900, easing: 'ease-out' });
+        row.animate({ backgroundColor: ['rgba(255, 255, 255, 0.099)', 'rgba(255, 255, 255, 0.0)'] }, { duration: 900, easing: 'ease-out' });
         const r = row.querySelector('.sn').getBoundingClientRect(); ripple(r.left + r.width / 2, r.top + r.height / 2, .9);
       }
       if (pr) { toast(`Nowy rekord (${PR_NAME[pr]}): ${exOf(e).name} · ${fmtSet(e.sets[+row.dataset.s], k, true)}`); prBurst(row.querySelector('.prs')); ctx.vibrate([20, 40, 30]); }
@@ -928,7 +928,7 @@
       const add = [...rows].slice(-n); if (!add.length) return;
       setTimeout(() => {
         add[0].scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'center' });
-        if (!calm()) add.forEach(r => r.animate({ backgroundColor: ['rgba(163,28,27,.28)', 'transparent'] }, { duration: 1600, easing: 'ease-out' }));
+        if (!calm()) add.forEach(r => r.animate({ backgroundColor: ['rgba(255, 255, 255, 0.126)', 'transparent'] }, { duration: 1600, easing: 'ease-out' }));
       }, 60);
     }
     function addToWorkout(ids, ss) {
@@ -1115,7 +1115,7 @@
       if (x1 - x0 > 400 * 864e5) pts.forEach(p => { const y = new Date(p.x).getFullYear(); if (!yrs.has(y)) { yrs.add(y); const jx = X(new Date(y, 0, 1).getTime()); if (jx > 20 && jx < W - pr - 10) xl += `<line x1="${jx.toFixed(1)}" x2="${jx.toFixed(1)}" y1="${pt}" y2="${H - pb}" class="gl v"/><text x="${jx.toFixed(1)}" y="${H - 6}" class="gt" text-anchor="middle">${y}</text>`; } });
       else xl = `<text x="${pl}" y="${H - 6}" class="gt">${shortDate(x0)}</text>${x1 !== x0 ? `<text x="${W - pr}" y="${H - 6}" class="gt" text-anchor="end">${shortDate(x1)}</text>` : ''}`;
       const sp = pts[Math.min(opts.sel ?? pts.length - 1, pts.length - 1)];
-      return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Wykres"><defs><linearGradient id="gy-${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#D8413F" stop-opacity=".38"/><stop offset="1" stop-color="#A31C1B" stop-opacity=".02"/></linearGradient></defs>${grid}${xl}
+      return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Wykres"><defs><linearGradient id="gy-${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ededed" stop-opacity=".38"/><stop offset="1" stop-color="#3a3a3a" stop-opacity=".02"/></linearGradient></defs>${grid}${xl}
         <path d="${area}" fill="url(#gy-${id})" class="ar"/>${pts.length > 1 ? `<path d="${line}" class="ln thin"/><path d="${tl}" class="ln" pathLength="1"/>` : ''}
         <line class="cur" x1="${X(sp.x).toFixed(1)}" x2="${X(sp.x).toFixed(1)}" y1="${pt}" y2="${H - pb}"/><circle class="halo" cx="${X(sp.x).toFixed(1)}" cy="${Y(sp.y).toFixed(1)}" r="11"/><circle class="pt last" cx="${X(sp.x).toFixed(1)}" cy="${Y(sp.y).toFixed(1)}" r="5"/>
         <rect class="hit" x="0" y="0" width="${W - pr}" height="${H}" fill="transparent" data-geo="${X(x0)},${X(x1)},${W},${pl},${pr}"/></svg>`;

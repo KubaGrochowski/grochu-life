@@ -1,10 +1,10 @@
 /* Grochu life — szkielet: tło, scena z sekcjami, dolne koło nawigacji, ekran logowania. */
 
 /* ---------- żywe tło: wolno dryfujące poświaty ---------- */
-.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: radial-gradient(120% 80% at 50% 0%, #0b1d14 0%, var(--forest) 55%, #030805 100%); }
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: radial-gradient(120% 80% at 50% 0%, #0e0e0e 0%, var(--forest) 55%, #000000 100%); }
 .bg i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; will-change: transform; }
-.bg-a { width: 70vmax; height: 70vmax; left: -25vmax; top: -30vmax; background: radial-gradient(circle, rgba(19, 64, 41, .55), transparent 65%); animation: bg-drift-a 26s ease-in-out infinite alternate; }
-.bg-b { width: 55vmax; height: 55vmax; right: -28vmax; top: 20vh; background: radial-gradient(circle, rgba(163, 28, 27, .22), transparent 65%); animation: bg-drift-b 32s ease-in-out infinite alternate; }
+.bg-a { width: 70vmax; height: 70vmax; left: -25vmax; top: -30vmax; background: radial-gradient(circle, rgba(38, 38, 38, .55), transparent 65%); animation: bg-drift-a 26s ease-in-out infinite alternate; }
+.bg-b { width: 55vmax; height: 55vmax; right: -28vmax; top: 20vh; background: radial-gradient(circle, rgba(255, 255, 255, 0.099), transparent 65%); animation: bg-drift-b 32s ease-in-out infinite alternate; }
 .bg-c { width: 60vmax; height: 40vmax; left: 10vw; bottom: -26vmax; background: radial-gradient(circle, rgba(23, 23, 23, .9), transparent 70%); animation: bg-drift-a 40s ease-in-out infinite alternate-reverse; }
 @keyframes bg-drift-a { to { transform: translate(8vmax, 6vmax) scale(1.12); } }
 @keyframes bg-drift-b { to { transform: translate(-10vmax, -8vmax) scale(.9); } }
@@ -26,19 +26,19 @@ body[data-sec="gym"] .bg-b { opacity: .65; }
 .wheel.drag { cursor: grabbing; }
 .wheel-arc { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 -12px 24px rgba(0, 0, 0, .55)); }
 .wheel-arc .wa-fill { opacity: .94; }
-.wheel-glow { position: absolute; left: 50%; bottom: calc(10px + var(--safe-b)); width: 180px; height: 90px; transform: translateX(-50%); background: radial-gradient(50% 60% at 50% 70%, rgba(163, 28, 27, .38), transparent 70%); pointer-events: none; animation: wheel-breathe 4.5s ease-in-out infinite; }
+.wheel-glow { position: absolute; left: 50%; bottom: calc(10px + var(--safe-b)); width: 180px; height: 90px; transform: translateX(-50%); background: radial-gradient(50% 60% at 50% 70%, rgba(255, 255, 255, 0.171), transparent 70%); pointer-events: none; animation: wheel-breathe 4.5s ease-in-out infinite; }
 @keyframes wheel-breathe { 50% { opacity: .55; transform: translateX(-50%) scale(1.12); } }
 .wheel-zip { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .wheel-zip i { position: absolute; left: -1px; top: -3px; width: 2px; height: 6px; border-radius: 2px; --near: 0;
   background: color-mix(in srgb, var(--crimson-hi) calc(var(--near) * 100%), rgba(255, 255, 255, .16));
   opacity: calc(.28 + var(--near) * .5); transition: opacity .35s; will-change: transform; }
-.wheel.zip .wheel-zip i { opacity: calc(.5 + var(--near) * .5); box-shadow: 0 0 calc(var(--near) * 8px) rgba(216, 65, 63, calc(var(--near) * .8)); }
+.wheel.zip .wheel-zip i { opacity: calc(.5 + var(--near) * .5); box-shadow: 0 0 calc(var(--near) * 8px) rgba(235, 235, 235, calc(var(--near) * .8)); }
 .wheel-switch { position: absolute; inset: 0; z-index: 5; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; appearance: auto; -webkit-appearance: auto; touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent; }
 .wheel-track { position: absolute; left: 50%; bottom: calc(50px + var(--safe-b)); width: 0; height: 0; }
 .wi { position: absolute; left: -27px; top: -27px; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); will-change: transform, opacity; --hot: 0; }
 .wi-ic { position: relative; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: rgba(23, 23, 23, calc(.85 - var(--hot) * .85)); border: 1px solid rgba(255, 255, 255, calc(.08 - var(--hot) * .02)); transition: color .3s; }
-.wi-ic::before { content: ''; position: absolute; inset: -1px; border-radius: 50%; background: radial-gradient(circle at 50% 30%, #c52a27, var(--crimson) 60%, #6e1211); opacity: var(--hot); box-shadow: 0 0 calc(var(--hot) * 26px) calc(var(--hot) * 2px) var(--crimson-glow), inset 0 1px 0 rgba(255, 255, 255, .2); }
-.wi-ic::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid rgba(216, 65, 63, calc(var(--hot) * .35)); }
+.wi-ic::before { content: ''; position: absolute; inset: -1px; border-radius: 50%; background: radial-gradient(circle at 50% 30%, #525252, var(--crimson) 60%, #242424); opacity: var(--hot); box-shadow: 0 0 calc(var(--hot) * 26px) calc(var(--hot) * 2px) var(--crimson-glow), inset 0 1px 0 rgba(255, 255, 255, .2); }
+.wi-ic::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid rgba(235, 235, 235, calc(var(--hot) * .35)); }
 .wi svg { position: relative; width: 25px; height: 25px; color: color-mix(in srgb, #fff calc(var(--hot) * 100%), var(--muted)); }
 .wi[aria-selected="true"] .wi-ic::after { animation: wheel-ring 2.6s var(--ease) infinite; }
 @keyframes wheel-ring { 0% { transform: scale(.9); opacity: 1; } 70%, 100% { transform: scale(1.35); opacity: 0; } }
@@ -61,7 +61,7 @@ body.gate .stage { visibility: hidden; }
 .auth.on .auth-card > :nth-child(3) { animation-delay: .16s; }
 .auth.on .auth-card > :nth-child(4) { animation-delay: .24s; }
 .auth-brand { text-align: center; display: grid; justify-items: center; gap: 6px; margin-bottom: 8px; }
-.auth-logo { width: 88px; height: 88px; border-radius: 26px; display: grid; place-items: center; background: var(--coal); border: 1px solid var(--line); box-shadow: 0 20px 50px -18px var(--crimson-glow), 0 0 0 8px rgba(163, 28, 27, .06); animation: auth-float 5s ease-in-out infinite; }
+.auth-logo { width: 88px; height: 88px; border-radius: 26px; display: grid; place-items: center; background: var(--coal); border: 1px solid var(--line); box-shadow: 0 20px 50px -18px var(--crimson-glow), 0 0 0 8px rgba(255, 255, 255, 0.027); animation: auth-float 5s ease-in-out infinite; }
 .auth-logo img { width: 72px; height: 72px; border-radius: 20px; }
 @keyframes auth-float { 50% { transform: translateY(-6px) rotate(-2deg); } }
 .auth-brand h1 { margin: 10px 0 0; font-size: 38px; font-weight: 800; letter-spacing: -.03em; }

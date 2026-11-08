@@ -347,7 +347,7 @@
   let navItems = [], navEl, arcEl;
   function buildNav() {
     navEl = $('#wheel');
-    navEl.innerHTML = `<svg class="wheel-arc" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1c1c1c"/><stop offset="1" stop-color="#0b120e"/></linearGradient><linearGradient id="wl" x1="0" x2="1"><stop offset="0" stop-color="#A31C1B" stop-opacity="0"/><stop offset=".5" stop-color="#d13b39"/><stop offset="1" stop-color="#A31C1B" stop-opacity="0"/></linearGradient></defs><path class="wa-fill" d="M0 6 Q200 62 400 6 L400 120 L0 120 Z" fill="url(#wa)"/><path class="wa-line" d="M0 6 Q200 62 400 6" fill="none" stroke="url(#wl)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
+    navEl.innerHTML = `<svg class="wheel-arc" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1c1c1c"/><stop offset="1" stop-color="#0a0a0a"/></linearGradient><linearGradient id="wl" x1="0" x2="1"><stop offset="0" stop-color="#3a3a3a" stop-opacity="0"/><stop offset=".5" stop-color="#9a9a9a"/><stop offset="1" stop-color="#3a3a3a" stop-opacity="0"/></linearGradient></defs><path class="wa-fill" d="M0 6 Q200 62 400 6 L400 120 L0 120 Z" fill="url(#wa)"/><path class="wa-line" d="M0 6 Q200 62 400 6" fill="none" stroke="url(#wl)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
       <div class="wheel-glow" aria-hidden="true"></div>
       <div class="wheel-zip" aria-hidden="true"></div>
       <div class="wheel-track" role="tablist" aria-label="Sekcje"></div>

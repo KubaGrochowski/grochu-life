@@ -65,7 +65,7 @@
           const m = t.value.trim().match(REF_RE); if (!m || m.index < 8) return;
           r.value = m[1].replace(/\s+/g, ' ').trim(); t.value = t.value.trim().slice(0, m.index).replace(/[\s„"”]+$/, '').replace(/^[„"]/, '');
           hint.textContent = `Odnośnik „${r.value}” przeniesiony do pola niżej`; hint.hidden = false;
-          if (!calm()) r.animate([{ boxShadow: '0 0 0 4px rgba(216,65,63,.45)' }, { boxShadow: '0 0 0 0 rgba(216,65,63,0)' }], { duration: 900, easing: 'ease-out' });
+          if (!calm()) r.animate([{ boxShadow: '0 0 0 4px rgba(235, 235, 235, .45)' }, { boxShadow: '0 0 0 0 rgba(235, 235, 235, 0)' }], { duration: 900, easing: 'ease-out' });
         };
         t.addEventListener('paste', () => setTimeout(split, 0));
         t.addEventListener('blur', split);

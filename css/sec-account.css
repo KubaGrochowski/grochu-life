@@ -1,7 +1,7 @@
 /* Grochu life — sekcja Konto */
 .s-account .acc { display: grid; gap: 14px; padding: 0 20px; max-width: 520px; }
 .s-account .acc-hero { display: flex; align-items: center; gap: 16px; padding: 18px; }
-.s-account .acc-av { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 700; color: #fff; background: radial-gradient(circle at 50% 30%, #c52a27, var(--crimson) 60%, #6e1211); box-shadow: 0 10px 26px -10px var(--crimson-glow); }
+.s-account .acc-av { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 700; color: #fff; background: radial-gradient(circle at 50% 30%, #525252, var(--crimson) 60%, #242424); box-shadow: 0 10px 26px -10px var(--crimson-glow); }
 .s-account .acc-who { display: grid; gap: 2px; min-width: 0; }
 .s-account .acc-who b { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .s-account .acc-sync { padding: 16px 18px; display: grid; gap: 4px; }

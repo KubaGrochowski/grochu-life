@@ -4,14 +4,14 @@
 
 /* werset dnia: duży cytat szeryfem z poświatą */
 .s-verses .vs-day { position: relative; overflow: hidden; display: grid; gap: 12px; padding: 22px 22px 20px; border-radius: 24px; cursor: pointer; text-align: left;
-  background: radial-gradient(120% 90% at 100% 0%, rgba(163, 28, 27, .22), transparent 60%), var(--surface); border: 1px solid rgba(216, 65, 63, .28); box-shadow: var(--shadow); }
-.s-verses .vs-day::after { content: '\201D'; position: absolute; right: 14px; top: -18px; font: 400 150px/1 var(--serif); color: rgba(216, 65, 63, .14); pointer-events: none; }
+  background: radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.099), transparent 60%), var(--surface); border: 1px solid rgba(235, 235, 235, .28); box-shadow: var(--shadow); }
+.s-verses .vs-day::after { content: '\201D'; position: absolute; right: 14px; top: -18px; font: 400 150px/1 var(--serif); color: rgba(235, 235, 235, .14); pointer-events: none; }
 .s-verses .vs-day blockquote { margin: 0; font: 400 26px/1.22 var(--serif); letter-spacing: -.01em; color: var(--text); }
 .s-verses .vs-day cite, .s-verses .vs-card cite { font: 500 13px var(--mono); font-style: normal; color: var(--crimson-hi); letter-spacing: .02em; }
 
 .s-verses .vs-search { position: relative; display: block; }
 .s-verses .vs-search input { width: 100%; height: 44px; border-radius: 999px; border: 1px solid var(--line); background: rgba(23, 23, 23, .8); color: var(--text); font: inherit; font-size: 16px; padding: 0 14px 0 40px; outline: 0; transition: border-color .25s, box-shadow .25s; }
-.s-verses .vs-search input:focus { border-color: rgba(216, 65, 63, .6); box-shadow: 0 0 0 4px rgba(163, 28, 27, .16); }
+.s-verses .vs-search input:focus { border-color: rgba(235, 235, 235, .6); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.072); }
 .s-verses .vs-search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 .s-verses .vs-count { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 6px 4px 0; }
 
@@ -22,7 +22,7 @@
 .s-verses .vs-card:active { transform: scale(.98); }
 .s-verses .vs-card p { margin: 0; font: 400 19px/1.3 var(--serif); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
 .s-verses .vs-card.fresh { animation: vs-fresh 1.4s var(--ease) both; }
-@keyframes vs-fresh { 0% { border-color: rgba(216, 65, 63, .9); box-shadow: 0 0 0 6px rgba(163, 28, 27, .25); transform: scale(.96); } 40% { transform: scale(1.01); } 100% { border-color: var(--line); box-shadow: none; transform: none; } }
+@keyframes vs-fresh { 0% { border-color: rgba(235, 235, 235, .9); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.113); transform: scale(.96); } 40% { transform: scale(1.01); } 100% { border-color: var(--line); box-shadow: none; transform: none; } }
 
 .s-verses .vs-empty { display: grid; justify-items: center; gap: 14px; text-align: center; padding: 50px 20px; color: var(--muted); }
 .s-verses .vs-empty-ic { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; color: var(--crimson-hi); background: var(--surface); border: 1px solid var(--line); animation: vs-float 5s ease-in-out infinite; }
