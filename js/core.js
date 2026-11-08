@@ -311,7 +311,7 @@
     const list = drawer.querySelector('.dr-list');
     items = sections.map((s, i) => {
       const b = document.createElement('button');
-      b.type = 'button'; b.className = 'dr-item'; b.style.setProperty('--i', i);
+      b.type = 'button'; b.className = 'dr-item'; b.dataset.sec = s.id; b.style.setProperty('--i', i);
       b.innerHTML = `<span class="dr-ic">${s.icon}</span><span class="dr-l">${esc(s.label)}</span><i class="dr-dot" aria-hidden="true"></i>${HAP}`;
       b.addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; haptic(6); goTo(i); });
       list.appendChild(b);

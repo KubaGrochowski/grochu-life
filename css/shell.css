@@ -59,7 +59,7 @@ body.menu-drag .drawer, body.menu-drag .scrim, body.menu-drag .stage { transitio
 .dr-item:active { transform: scale(.97); }
 .dr-ic { width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); transition: background .3s, border-color .3s; }
 .dr-ic svg { width: 22px; height: 22px; }
-.dr-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pop); box-shadow: 0 0 10px rgba(229, 72, 77, .8); transform: scale(0); transition: transform .45s var(--spring); }
+.dr-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hue, var(--pop)); box-shadow: 0 0 12px color-mix(in srgb, var(--hue, var(--pop)) 80%, transparent); transform: scale(0); transition: transform .45s var(--spring); }
 .dr-item.on { background: rgba(255, 255, 255, .065); color: var(--text); }
 .dr-item.on .dr-ic { background: #2c2c2c; border-color: var(--line-2); }
 .dr-item.on .dr-dot { transform: scale(1); }

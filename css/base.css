@@ -11,7 +11,9 @@
   --crimson-hi: #ededed;      /* jasny akcent na tekst i cienkie linie */
   --crimson-lo: rgba(255, 255, 255, 0.081);
   --crimson-glow: rgba(0, 0, 0, .6);
-  --pop: #E5484D;              /* jedyny mocny kolor: małe detale (kropka po tytule, kropka przy bieżącej sekcji w menu) */
+  --pop: #A78BFA;              /* detale: odcienie różu i fioletu, każda sekcja ma swój (--hue, css/look.css) */
+  --pop-2: #F472B6;
+  --pop-grad: linear-gradient(135deg, #F472B6, #C084FC 55%, #818CF8);
   --bg: var(--forest);
   --surface: var(--coal);
   --surface-2: var(--coal-2);
@@ -44,7 +46,7 @@ body { overflow: hidden; overscroll-behavior: none; touch-action: manipulation; 
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 button:disabled { cursor: default; }
-:focus-visible { outline: 2px solid var(--crimson-hi); outline-offset: 2px; border-radius: 8px; }
+:focus-visible { outline: 2px solid var(--pop); outline-offset: 2px; border-radius: 8px; }
 img, svg { display: block; }
 [hidden] { display: none !important; }
 .mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
