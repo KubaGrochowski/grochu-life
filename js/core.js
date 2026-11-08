@@ -99,7 +99,7 @@
       st.status = 'syncing'; emit();
       try {
         const tok = await token();
-        const rows = await api(`/rest/v1/${st.table}?select=data`, { token: tok });
+        const rows = await api(`/rest/v1/${st.table}?select=data${st.key ? `&section=eq.${st.key}` : ''}`, { token: tok });
         const remote = rows?.[0]?.data?.items ? rows[0].data : { items: {}, ts: {} };
         trackLocal(st); // stan lokalny dopiero po pobraniu, żeby objąć kliknięcia z czasu pobierania
         const m = meta(st), local = { items: m.flat, ts: m.ts };
@@ -109,9 +109,9 @@
         write(st.metaKey, { flat: merged.items, ts: merged.ts, dirty: needPush });
         const v = st.version;
         if (needPush) {
-          await api(`/rest/v1/${st.table}?on_conflict=user_id`, {
+          await api(`/rest/v1/${st.table}?on_conflict=${st.key ? 'user_id,section' : 'user_id'}`, {
             method: 'POST', token: tok, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-            body: { user_id: session.user_id, data: merged, updated_at: new Date().toISOString() },
+            body: { user_id: session.user_id, ...(st.key ? { section: st.key } : {}), data: merged, updated_at: new Date().toISOString() },
           });
         }
         if (st.version === v) write(st.metaKey, { ...meta(st), dirty: false }); else schedule(st, 0);
@@ -141,7 +141,7 @@
       sock.send(JSON.stringify({
         topic: TOPIC, event: 'phx_join', ref: String(++wsRef), join_ref: '1',
         payload: { access_token: tok, config: { broadcast: { self: false }, presence: { key: '' }, private: false,
-          postgres_changes: stores.map(st => ({ event: '*', schema: 'public', table: st.table, filter: `user_id=eq.${session.user_id}` })) } },
+          postgres_changes: [...new Set(stores.map(st => st.table))].map(table => ({ event: '*', schema: 'public', table, filter: `user_id=eq.${session.user_id}` })) } },
       }));
       clearInterval(hb);
       hb = setInterval(() => wsSend({ topic: 'phoenix', event: 'heartbeat', payload: {} }), 25000);
@@ -150,8 +150,10 @@
       let m; try { m = JSON.parse(e.data); } catch (_) { return; }
       if (m.topic !== TOPIC) return;
       if (m.event === 'postgres_changes') {
-        const table = m.payload?.data?.table, st = stores.find(s => s.table === table);
-        st ? schedule(st, 0) : scheduleAll(0);
+        // life_data ma wiersz na sekcję: zmiana przychodzi z kolumną section
+        const d = m.payload?.data, sec = d?.record?.section || d?.old_record?.section;
+        const hit = stores.filter(s => s.table === d?.table && (!s.key || !sec || s.key === sec));
+        hit.length ? hit.forEach(st => schedule(st, 0)) : scheduleAll(0);
       } else if (m.event === 'phx_reply' && m.payload?.status === 'ok') { wsRetry = 0; scheduleAll(0); }
       else if (m.event === 'phx_error' || m.event === 'phx_close') sock.close();
     };
@@ -261,6 +263,24 @@
     clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2600);
   }
 
+  // Arkusz od dołu w warstwie sekcji: zamyka się tłem, Esc i przyciskami [data-close]. Zwraca { el, close }.
+  function sheet(layer, html, { cls = '', onClose } = {}) {
+    const ov = document.createElement('div');
+    ov.className = 'sheet-ov';
+    ov.innerHTML = `<div class="sheet ${cls}" role="dialog" aria-modal="true">${html}</div>`;
+    layer.appendChild(ov);
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    function close() {
+      if (ov.classList.contains('out')) return;
+      ov.classList.add('out'); document.removeEventListener('keydown', onKey);
+      setTimeout(() => ov.remove(), calm() ? 0 : 300);
+      onClose?.();
+    }
+    ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', onKey);
+    return { el: ov.firstChild, close };
+  }
+
   /* ================================================================ sekcje ================================================================ */
   const defs = [];
   const GL = window.GL = {
@@ -293,14 +313,15 @@
         id: def.id, root: s.root, scroller: s.scroller, layer, section: el,
         get active() { return sections[cur] === s; },
         changed: () => { const st = stores.find(x => x.id === def.id); if (st) { st.version++; trackLocal(st); schedule(st); } },
-        cloud: Cloud, toast, vibrate, calm, esc,
+        cloud: Cloud, toast, vibrate, haptic, calm, esc,
+        sheet: (html, opts) => sheet(layer, html, opts),
         go: GL.go,
         // pełny ekran (np. trwający trening): chowa dolne koło
         fullscreen: on => { s.full = !!on; if (ctx.active) document.body.classList.toggle('layer-full', s.full); },
       };
       try { s.api = def.init(ctx) || {}; } catch (e) { console.error(def.id, e); s.root.innerHTML = `<p class="gl-err">Sekcja „${esc(def.label)}” nie wczytała się: ${esc(e.message)}</p>`; s.api = {}; }
       if (def.cloud && s.api.getState) {
-        const st = { id: def.id, table: def.cloud.table, flatten: def.cloud.flatten, unflatten: def.cloud.unflatten, app: s.api, metaKey: `glife.${def.id}.sync`, version: 0, status: 'idle', error: '', reset: s.api.reset };
+        const st = { id: def.id, table: def.cloud.table, key: def.cloud.key || null, flatten: def.cloud.flatten, unflatten: def.cloud.unflatten, app: s.api, metaKey: `glife.${def.id}.sync`, version: 0, status: 'idle', error: '', reset: s.api.reset };
         stores.push(st);
         if (!read(st.metaKey)) trackLocal(st);
       }

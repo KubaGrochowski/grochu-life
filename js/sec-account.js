@@ -1,8 +1,8 @@
 /* Grochu life — sekcja Konto: e-mail, ustawienia sekcji (GL.settings), stan synchronizacji, wylogowanie. */
 (() => {
   'use strict';
-  const VERSION = 8;
-  const NAMES = { gym: 'Siłownia', habits: 'Nawyki', diet: 'Dieta' };
+  const VERSION = 9;
+  const NAMES = { gym: 'Siłownia', habits: 'Nawyki', diet: 'Dieta', recipes: 'Przepisy', verses: 'Wersety' };
   const STATUS = { idle: 'czeka', syncing: 'wysyłam…', ok: 'zsynchronizowane', offline: 'offline', error: 'błąd' };
 
   GL.register({
@@ -22,7 +22,7 @@
       function syncHtml() {
         const st = cloud.stores;
         return `<div class="acc-row-h"><span class="eyebrow">Synchronizacja</span><button class="chip" id="acc-sync">Synchronizuj</button></div>
-          ${st.map(s => `<div class="acc-row"><span class="acc-dot" data-s="${s.status}"></span><span>${esc(NAMES[s.id] || s.id)}</span><small>${cloud.local ? 'tylko na urządzeniu' : esc(STATUS[s.status] || s.status)}${s.dirty && s.status !== 'syncing' ? ' · zmiany czekają' : ''}</small></div>`).join('')}
+          ${st.map(s => `<div class="acc-row"><span class="acc-dot" data-s="${s.status}"></span><span>${esc(NAMES[s.id] || s.id)}</span><small>${cloud.local ? 'tylko na urządzeniu' : s.status === 'error' && /life_data|relation|schema cache/i.test(s.error) ? 'brak tabeli w Supabase — dane zostają na telefonie' : esc(STATUS[s.status] || s.status)}${s.dirty && s.status !== 'syncing' ? ' · zmiany czekają' : ''}</small></div>`).join('')}
           ${cloud.lastSync ? `<p class="acc-last">Ostatnio: ${cloud.lastSync.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</p>` : ''}`;
       }
       function render() {

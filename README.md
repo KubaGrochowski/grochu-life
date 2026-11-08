@@ -1,6 +1,6 @@
 # Grochu life
 
-Jedna aplikacja zamiast trzech: **Siłownia** (dawny Traincker), **Nawyki** (Habbitcker) i **Dieta** (Foodcker), plus **Konto**.
+Jedna aplikacja zamiast trzech: **Siłownia** (dawny Traincker), **Nawyki** (Habbitcker) i **Dieta** (Foodcker), do tego **Przepisy**, **Wersety** i **Konto**.
 Czysty HTML/CSS/JS, bez budowania. Konto i dane z tego samego projektu Supabase co dotychczasowe aplikacje — logujesz się tym samym e-mailem i hasłem, a nawyki, posiłki i treningi wczytują się z chmury.
 
 Motyw: czarny węgiel `#171717`, leśna zieleń `#06110C`, crimson `#A31C1B`. Czcionki i styl jak w Grochu Privates: Instrument Serif (tytuły z kropką, duże liczby), Geist (tekst), Geist Mono (małe liczby) — `css/look.css`.
@@ -18,6 +18,8 @@ node .claude/serve.js 5180
 i otwórz http://localhost:5180. Adres `http://localhost:5180/?local` pomija logowanie (dane tylko na urządzeniu) — do podglądu i testów.
 
 ## Dane i synchronizacja
+
+- Nowe sekcje (Przepisy, Wersety i kolejne) trzymają dane we wspólnej tabeli `life_data` (wiersz na użytkownika i sekcję, `cloud: { table: 'life_data', key: '<sekcja>' }`). Tabelę tworzy jednorazowo `supabase/setup.sql` (Supabase → SQL Editor → Run).
 
 - Jedna sesja (`glife.auth`), jedno połączenie Realtime, osobna tabela na sekcję: `user_data` (nawyki), `makro_data` (dieta), `gym_data` (siłownia) — te same co w starych aplikacjach, ten sam format, więc stare i nowa aplikacja mogą działać równolegle.
 - Każdy element ma znacznik czasu zmiany; przy łączeniu wygrywa nowszy, usunięcia też się przenoszą (`js/core.js`).
