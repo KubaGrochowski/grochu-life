@@ -44,7 +44,7 @@
             ${all.length > 4 ? `<label class="vs-search${anim ? ' rise' : ''}" style="--d:1">${SEARCH}<input type="search" placeholder="Szukaj w wersetach" value="${esc(query)}" autocomplete="off"></label>` : ''}
             ${all.length ? `<div class="vs-count${anim ? ' rise' : ''}" style="--d:1"><span>${shown.length} ${plural(shown.length)}</span></div>` : ''}
             <div class="vs-list">${shown.map((v, i) => `<button class="vs-card${anim ? ' rise' : ''}${v.id === fresh ? ' fresh' : ''}" style="--d:${Math.min(i + 2, 12)}" data-open="${v.id}"><p>${esc(v.text)}</p><cite>${esc(v.ref)}</cite></button>`).join('')}</div>
-            ${!all.length ? `<div class="vs-empty rise"><div class="vs-empty-ic">${BOOK}</div><p>Dodaj pierwszy werset — wklej jego treść i wpisz, gdzie go znaleźć.</p><button class="btn btn-primary" data-add>${PLUS}Dodaj werset</button></div>` : ''}
+            ${!all.length ? `<div class="vs-empty rise"><div class="vs-empty-ic">${BOOK}</div><p>Dodaj swój pierwszy werset</p></div>` : ''}
             ${q && !shown.length ? '<p class="empty">Nic nie pasuje do wyszukiwania</p>' : ''}
           </div>`;
         fresh = null;

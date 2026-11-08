@@ -241,6 +241,42 @@
     return { el: ov.firstChild, close };
   }
 
+  // Lista rozwijana pod przyciskiem ze strzałką (np. Treningi / Plany / Postępy). items: [[id, nazwa], …].
+  // Rysowana w warstwie sekcji, przyklejona do prawej krawędzi przycisku; zamyka się dotknięciem obok i Esc.
+  function dropdown(layer, anchor, items, value, onPick) {
+    const r = anchor.getBoundingClientRect();
+    const wrap = document.createElement('div');
+    wrap.className = 'dd-ov';
+    wrap.innerHTML = `<div class="dd" role="menu" style="top:${Math.round(r.bottom + 8)}px;right:${Math.round(innerWidth - r.right)}px">${items.map(([id, l], i) =>
+      `<button type="button" class="dd-i${id === value ? ' on' : ''}" role="menuitemradio" aria-checked="${id === value}" data-id="${esc(id)}" style="--i:${i}"><span>${esc(l)}</span><i class="dd-ck" aria-hidden="true"></i>${HAP}</button>`).join('')}</div>`;
+    layer.appendChild(wrap);
+    anchor.classList.add('open'); anchor.setAttribute('aria-expanded', 'true');
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    function close() {
+      if (wrap.classList.contains('out')) return;
+      wrap.classList.add('out'); anchor.classList.remove('open'); anchor.setAttribute('aria-expanded', 'false');
+      removeEventListener('keydown', onKey);
+      setTimeout(() => wrap.remove(), calm() ? 0 : 240);
+    }
+    wrap.addEventListener('click', e => {
+      if (e.target.tagName === 'INPUT') return;
+      const b = e.target.closest('.dd-i');
+      if (b) { haptic(6); close(); if (b.dataset.id !== value) onPick(b.dataset.id); return; }
+      if (e.target === wrap) close();
+    });
+    addEventListener('keydown', onKey);
+    setTimeout(() => wrap.querySelector('.dd-i.on, .dd-i')?.focus({ preventScroll: true }), 60);
+    return close;
+  }
+  const CHEV = '<svg class="vd-ch" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // przycisk ze strzałką do nagłówka sekcji; zmiana nazwy podjeżdża od dołu
+  const dropBtnHtml = (label, attrs = '') => `<button type="button" class="vdrop" aria-haspopup="menu" aria-expanded="false" ${attrs}><span class="vd-l">${esc(label)}</span>${CHEV}${HAP}</button>`;
+  function setDropLabel(btn, label) {
+    const l = btn.querySelector('.vd-l'); if (!l || l.textContent === label) return;
+    l.textContent = label;
+    if (!calm()) l.animate([{ opacity: 0, transform: 'translateY(60%)', filter: 'blur(3px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+
   /* ================================================================ sekcje ================================================================ */
   const defs = [];
   const GL = window.GL = {
@@ -274,6 +310,8 @@
         changed: () => { const st = stores.find(x => x.id === def.id); if (st) { st.version++; trackLocal(st); schedule(st); } },
         cloud: Cloud, toast, vibrate, haptic, calm, esc,
         sheet: (html, opts) => sheet(layer, html, opts),
+        dropdown: (anchor, items, value, onPick) => dropdown(layer, anchor, items, value, onPick),
+        dropBtnHtml, setDropLabel,
         go: GL.go,
         // pełny ekran (np. trwający trening): chowa przycisk menu
         fullscreen: on => { s.full = !!on; if (ctx.active) document.body.classList.toggle('layer-full', s.full); },
@@ -301,7 +339,7 @@
 
   /* ---------- boczne menu: przycisk z ikoną i nazwą sekcji, wysuwana z prawej lista sekcji ---------- */
   const X_IC = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
-  const BURGER = '<svg class="mb-burger" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M3 9h12M3 13h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  const BURGER = '<span class="mb-lines" aria-hidden="true"><i></i><i></i><i></i></span>';
   let menuBtn, drawer, scrim, items = [], menuOpen = false;
   function buildNav() {
     menuBtn = $('#menu-btn'); drawer = $('#drawer'); scrim = $('#scrim');
@@ -322,20 +360,13 @@
     scrim.addEventListener('click', closeMenu);
     addEventListener('keydown', e => { if (e.key === 'Escape' && menuOpen) closeMenu(); });
     bindEdgeSwipe();
-    markActive(true);
+    markActive();
   }
-  // przycisk w rogu: ikona i nazwa bieżącej sekcji; przy zmianie stara treść odjeżdża w górę, nowa wjeżdża od dołu
-  function markActive(instant) {
+  // hamburger w prawym górnym rogu; w menu bieżąca sekcja ma kropkę
+  function markActive() {
     const s = sections[cur];
     items.forEach((b, j) => { b.classList.toggle('on', j === cur); b.setAttribute('aria-current', j === cur ? 'page' : 'false'); });
-    const html = `<span class="mb-in"><span class="mb-ic">${s.icon}</span><span class="mb-l">${esc(s.label)}</span></span>`;
-    const old = menuBtn.querySelector('.mb-in');
-    if (instant || !old || calm()) { menuBtn.innerHTML = `${BURGER}${html}${HAP}`; menuBtn.setAttribute('aria-label', `Menu — ${s.label}`); return; }
-    old.insertAdjacentHTML('afterend', html);
-    const nw = old.nextElementSibling;
-    old.classList.add('out');
-    old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-70%)', filter: 'blur(3px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => old.remove();
-    nw.animate([{ opacity: 0, transform: 'translateY(70%)', filter: 'blur(3px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 420, delay: 80, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+    if (!menuBtn.firstChild) menuBtn.innerHTML = `${BURGER}${HAP}`;
     menuBtn.setAttribute('aria-label', `Menu — ${s.label}`);
   }
   function openMenu() {

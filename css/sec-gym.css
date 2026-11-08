@@ -11,12 +11,6 @@
 /* ================= ekran główny sekcji ================= */
 .s-gym .g-main { max-width: 640px; margin: 0 auto; }
 .s-gym .g-head { padding-inline: 16px; }
-.s-gym .g-find { color: var(--ink-2); flex: none; transition: transform .3s var(--spring), color .25s, background .25s, border-color .25s; }
-.s-gym .g-find svg { width: 18px; height: 18px; transition: transform .45s var(--spring); }
-.s-gym .g-find:hover { color: var(--ink); }
-.s-gym .g-find.on { color: var(--on-gold); background: var(--acc-grad); border-color: rgba(255, 255, 255, .1); box-shadow: 0 8px 22px -10px var(--crimson-glow); }
-.s-gym .g-find.on svg { transform: rotate(-12deg) scale(1.08); }
-.s-gym .g-tabs { margin: 0 16px 16px; }
 .s-gym .g-view { padding: 0 16px; }
 .s-gym .g-view { padding-bottom: 84px; } /* miejsce na + albo pasek „Wróć” */
 .s-gym .eyebrow { font: 600 11.5px/1 var(--mono); letter-spacing: .1em; color: var(--ink-3); }

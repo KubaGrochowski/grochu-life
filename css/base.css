@@ -37,7 +37,7 @@
   --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .35);
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
-  --nav-h: calc(82px + var(--safe-b));    /* miejsce na dole na przycisk menu: tyle zostawić pod treścią */
+  --nav-h: calc(20px + var(--safe-b));    /* odstęp na dole pod treścią i pływającymi przyciskami */
   color-scheme: dark;
 }
 

@@ -137,7 +137,7 @@
 
     // nawigacja jak w aplikacji na telefon: zakładki pod nagłówkiem, trening jako osobny ekran, szczegóły nakładane na wierzch
     let tab = 'log', wOpen = !!state.active, stack = [], animTab = true;
-    let hQuery = '', hFind = false, hLimit = 25, pWeeks = 8, calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let hQuery = '', hLimit = 25, pWeeks = 8, calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     try { const v = localStorage.getItem(TAB_KEY); if (['log', 'routines', 'progress'].includes(v)) tab = v; } catch (_) { }
     const calm = ctx.calm;
 
@@ -278,12 +278,11 @@
     /* ---------- szkielet sekcji: nagłówek, zakładki, widok; w warstwie: trening, szczegóły, okienka ---------- */
     const TABS = [['log', 'Treningi'], ['routines', 'Plany'], ['progress', 'Postępy']];
     root.innerHTML = `<div class="g-main">
-      <header class="sec-head g-head"><h1 class="sec-title">Siłownia</h1><button class="icon-btn g-find" data-hfind aria-label="Szukaj treningu lub ćwiczenia" aria-expanded="false">${SEARCH}</button></header>
-      <div class="seg g-tabs" role="tablist" aria-label="Zakładki" style="--n:${TABS.length};--i:0">${TABS.map(([t, l]) => `<button class="seg-b" role="tab" data-tab="${t}" aria-selected="false">${l}</button>`).join('')}</div>
+      <header class="sec-head g-head"><h1 class="sec-title">Siłownia</h1>${ctx.dropBtnHtml(TABS.find(t => t[0] === tab)[1], 'data-gtabs aria-label="Zakładka"')}</header>
       <div class="g-view"></div></div>`;
     section.insertAdjacentHTML('beforeend', `<button class="g-live" hidden></button><button class="g-fab" aria-label="Nowy trening" hidden><svg width="22" height="22" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`);
     layer.innerHTML = '<section class="g-layer g-wk" hidden></section><section class="g-layer g-dt" hidden></section><div class="g-ov"></div>';
-    const tabView = root.querySelector('.g-view'), tabsEl = root.querySelector('.g-tabs');
+    const tabView = root.querySelector('.g-view'), tabsBtn = root.querySelector('[data-gtabs]');
     const fabEl = section.querySelector('.g-fab'), liveEl = section.querySelector('.g-live');
     const wkLayer = layer.querySelector('.g-wk'), dtLayer = layer.querySelector('.g-dt'), overlay = layer.querySelector('.g-ov');
     // id w szablonach mają przedrostek gy-, żeby nie zderzyć się z innymi sekcjami
@@ -397,8 +396,7 @@
     /* ================= rysowanie ================= */
     function render() {
       const ti = TABS.findIndex(t => t[0] === tab);
-      tabsEl.style.setProperty('--i', ti);
-      tabsEl.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+      ctx.setDropLabel(tabsBtn, TABS[ti][1]);
       renderTab();
       renderLive();
       if (wOpen && state.active) { openLayer(wkLayer, 'translateY(100%)'); renderWorkout(); } else { closeLayer(wkLayer, 'translateY(100%)'); wOpen = false; hideAsk(true); }
@@ -431,24 +429,6 @@
       const s = wStats(w), lines = w.ex.slice(0, 7).map(e => `<li${e.sup ? ' class="ss"' : ''}><span>${esc(exOf(e).name)}</span><b>${esc(exLine(e))}</b></li>`).join('') + (w.ex.length > 7 ? `<li class="more"><span>i ${w.ex.length - 7} więcej…</span></li>` : '');
       return `<button class="wcard" data-w="${w.id}" style="--i:${i}"><div class="wc-h"><span class="wc-d">${dateLabel(w.start)}</span><span class="wc-t"><span>Rozpoczęty ${hhmm(w.start)}</span><span>Trwał ${fmtDur(s.ms)}</span></span></div><b class="wc-n">${esc(w.name)}</b><ul>${lines}</ul>${prCount(w) ? `<div class="wc-f"><span class="pr">${STARS} ${prCount(w)} ${plural(prCount(w), 'rekord', 'rekordy', 'rekordów')}</span></div>` : ''}</button>`;
     }
-    // lupka w nagłówku: wysuwa pole wyszukiwania nad listą treningów; drugie dotknięcie chowa je i czyści
-    function toggleFind(force) {
-      hFind = force ?? !hFind;
-      root.querySelector('.g-find')?.setAttribute('aria-expanded', hFind);
-      root.querySelector('.g-find')?.classList.toggle('on', hFind);
-      if (tab !== 'log') { if (!hFind) return; animTab = true; tabDir = -1; tab = 'log'; try { localStorage.setItem(TAB_KEY, tab); } catch (_) { } render(); }
-      const box = tabView.querySelector('.hsearch'); if (!box) return;
-      const inp = box.querySelector('input');
-      if (hFind) {
-        box.hidden = false; inp.focus({ preventScroll: true });
-        if (!calm()) box.animate([{ opacity: 0, transform: 'translateY(-10px) scaleX(.92)', filter: 'blur(3px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 380, easing: EASE });
-      } else {
-        const done = () => { box.hidden = true; };
-        if (hQuery) { hQuery = ''; inp.value = ''; hLimit = 25; renderLog(); }
-        inp.blur();
-        if (calm()) done(); else box.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-8px) scaleX(.94)' }], { duration: 220, easing: EASE_IN }).onfinish = done;
-      }
-    }
     function renderLog() {
       const q = norm(hQuery.trim());
       const all = finished().filter(w => !q || norm(w.name).includes(q) || w.ex.some(e => norm(exOf(e).name).includes(q)));
@@ -461,7 +441,7 @@
       }
       if (!all.length) html = q ? '<p class="empty">Nic nie pasuje do wyszukiwania</p>' : emptyCard('Zacznij pierwszy trening', 'Naciśnij +, wybierz plan albo pusty trening i dodawaj serie. Następnym razem ciężary z ostatniego treningu podpowiedzą się same.', '<button class="primary acc" data-start>Nowy trening</button>');
       if (all.length > hLimit) html += '<button class="allweek more" data-more>Pokaż starsze</button>';
-      if (!tabView.querySelector('#gy-w-list')) tabView.innerHTML = `<label class="hsearch"${hFind ? '' : ' hidden'}>${SEARCH}<input id="gy-h-q" type="search" placeholder="Szukaj treningu lub ćwiczenia" autocomplete="off" value="${esc(hQuery)}"></label><div class="wlist" id="gy-w-list"></div>`;
+      if (!tabView.querySelector('#gy-w-list')) tabView.innerHTML = '<div class="wlist" id="gy-w-list"></div>';
       const list = $('w-list'); list.className = 'wlist' + (animTab ? ' enter' : ''); list.innerHTML = html;
     }
 
@@ -1356,7 +1336,7 @@
       if (!mine(e.target)) return;
       const T = s => e.target.closest(s); let b;
       // zakładki i główne przyciski
-      if ((b = T('.g-tabs [data-tab]'))) { if (b.dataset.tab === tab && !stack.length) scroller.scrollTo({ top: 0, behavior: calm() ? 'auto' : 'smooth' }); else setTab(b.dataset.tab); return; }
+      if ((b = T('[data-gtabs]'))) { ctx.dropdown(b, TABS, tab, t => setTab(t)); return; }
       if (T('.g-fab') || T('[data-start]')) { if (!calm()) ripple(e.clientX, e.clientY, 1.2); openStart(); return; }
       if ((b = T('[data-rest-yes]'))) { unlockAudio(); startRest(+b.dataset.restYes, true); hideAsk(); return; }
       if (T('[data-rest-no]')) { hideAsk(); return; }
@@ -1400,7 +1380,6 @@
       if (T('[data-goal]')) { if (!calm()) ripple(e.clientX, e.clientY, 1.4); openGoal(); return; }
       if ((b = T('[data-cal]'))) { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + +b.dataset.cal, 1); const c = b.closest('.scard'); c.innerHTML = calendarHtml(); c.querySelector('.calg').classList.add('enter'); return; }
       if ((b = T('[data-cday]'))) { openDay(b.dataset.cday); return; }
-      if (T('[data-hfind]')) { toggleFind(); return; }
       if ((b = T('[data-bw]'))) { openWeight(b.dataset.bw); return; }
       if (T('[data-bwall]')) { bwAll = !bwAll; const c = tabView.querySelector('.bwcard'); if (c) c.innerHTML = weightHtml(); return; }
       // ustawienia

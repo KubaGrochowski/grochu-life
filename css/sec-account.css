@@ -20,3 +20,5 @@
 .s-account .acc-set { display: grid; gap: 8px; }
 .s-account .acc-set > .eyebrow { padding-left: 4px; }
 .s-account .acc-set .ilist { margin-bottom: 0; }
+.s-account .acc-pick { margin-bottom: 4px; }
+.acc-set-box { display: grid; gap: 10px; }

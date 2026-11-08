@@ -44,7 +44,7 @@
             ${all.length > 3 ? `<label class="rc-search${a}">${SEARCH}<input type="search" placeholder="Szukaj przepisu lub składnika" value="${esc(query)}" autocomplete="off"></label>` : ''}
             ${cats.length > 1 ? `<div class="rc-cats${a}" style="--d:1"><button class="chip${cat ? '' : ' on'}" data-cat="">Wszystkie</button>${cats.map(c => `<button class="chip${cat === c ? ' on' : ''}" data-cat="${c}">${c}</button>`).join('')}</div>` : ''}
             <div class="rc-grid">${shown.map((r, i) => `<button class="rc-card${a}${r.id === fresh ? ' fresh' : ''}" style="--d:${Math.min(i + 2, 12)}" data-open="${r.id}">${cover(r, 'rc-ph')}<div class="rc-body"><b>${esc(r.name)}</b><div class="rc-meta">${r.cat ? `<span class="rc-cat">${esc(r.cat)}</span>` : ''}${meta(r)}</div></div></button>`).join('')}</div>
-            ${!all.length ? `<div class="rc-empty rise"><div class="rc-empty-ic">${POT}</div><p>Dodaj swój pierwszy przepis — składniki, kroki i zdjęcie.</p><button class="btn btn-primary" data-add>${PLUS}Dodaj przepis</button></div>` : ''}
+            ${!all.length ? `<div class="rc-empty rise"><div class="rc-empty-ic">${POT}</div><p>Dodaj swój pierwszy przepis</p></div>` : ''}
             ${all.length && !shown.length ? '<p class="empty">Nic nie pasuje</p>' : ''}
           </div>`;
         fresh = null;

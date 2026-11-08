@@ -5,7 +5,6 @@
   'use strict';
 
   const STORAGE_KEY = 'glife.diet.v1';
-  const VIEW_KEY = 'glife.diet.view';
   const DAYS_FULL = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
   const DAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
   const MONTHS_GEN = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
@@ -69,7 +68,6 @@
   const PLATE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.3" opacity=".6"/></svg>';
   const AGAIN = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5v2.8h-2.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const SEARCH = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.7"/><path d="M10.5 10.5l3.2 3.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
-  const TARGET = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>';
   const CHEV = d => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="${d < 0 ? 'M10 3.5L5.5 8l4.5 4.5' : 'M6 3.5L10.5 8 6 12.5'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
   GL.register({
@@ -114,30 +112,22 @@
 
       let view = 'day', selDay = dayOnly(new Date()), slideDir = 0, animList = true, hello = true, userAct = false;
       let sumDays = 7, hQuery = '', hLimit = 14, freshId = null, shownView = null;
-      try { const v = localStorage.getItem(VIEW_KEY); if (v === 'history' || v === 'summary') view = v; } catch (_) { }
 
       /* ---------- szkielet sekcji ---------- */
       root.innerHTML = `
         <header class="sec-head dt-head">
           <h1 class="sec-title">Dieta</h1>
-          <div class="dt-act">
-            <button class="dt-today" data-today hidden>Dziś</button>
-            <button class="icon-btn dt-goals" data-goals aria-label="Cele dzienne" title="Cele dzienne">${TARGET}</button>
-            <button class="btn btn-primary dt-add" data-add><span class="dt-plus">${PLUS}</span>Dodaj<span class="dt-add-l">&nbsp;posiłek</span></button>
-          </div>
+          ${ctx.dropBtnHtml('Dzień', 'data-dviews aria-label="Widok"')}
         </header>
-        <div class="dt-bar"><nav class="seg dt-seg" role="tablist" aria-label="Widok" style="--n:3;--i:0">
-          <button class="seg-b" role="tab" data-view="day">Dzień</button>
-          <button class="seg-b" role="tab" data-view="history">Historia</button>
-          <button class="seg-b" role="tab" data-view="summary">Podsumowanie</button>
-        </nav></div>
         <div class="dt-views">
           <section class="dt-view" data-v="day"></section>
           <section class="dt-view" data-v="history" hidden></section>
           <section class="dt-view" data-v="summary" hidden></section>
         </div>`;
       const vEl = v => root.querySelector(`.dt-view[data-v="${v}"]`);
-      const seg = root.querySelector('.dt-seg'), todayBtn = root.querySelector('.dt-today');
+      const viewsBtn = root.querySelector('[data-dviews]');
+      const VIEW_NAMES = [['day', 'Dzień'], ['history', 'Historia'], ['summary', 'Podsumowanie']];
+      ctx.section.insertAdjacentHTML('beforeend', `<button class="dt-fab" data-add aria-label="Dodaj posiłek">${PLUS}</button>`);
 
       /* ---------- płynne liczby ---------- */
       const shown = new Map();
@@ -167,8 +157,7 @@
       let prevRing = null, prevArc = null, prevDayTot = null, prevDayKey = null;
       function render() {
         const t = todayKey(), k = key(selDay), vi = VIEWS.indexOf(view);
-        seg.style.setProperty('--i', vi);
-        seg.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-selected', b.dataset.view === view));
+        ctx.setDropLabel(viewsBtn, VIEW_NAMES[vi][1]);
         VIEWS.forEach(v => { vEl(v).hidden = v !== view; });
         // zmiana widoku: nowy wjeżdża z boku, w stronę ruchu pigułki
         if (shownView && shownView !== view && !calm()) {
@@ -177,7 +166,6 @@
           el.classList.remove('dt-vin'); void el.offsetWidth; el.classList.add('dt-vin');
         }
         shownView = view;
-        todayBtn.hidden = !(view === 'day' && k !== t);
         if (view === 'day') renderDay(k);
         else if (view === 'history') renderHistory();
         else renderSummary();
@@ -624,7 +612,6 @@
         const m = { ...JSON.parse(JSON.stringify(src)), id: uid(), day: todayKey(), at: nowTime(), type: typeByHour(new Date().getHours()), created: Date.now() };
         state.meals[m.id] = m; save();
         freshId = m.id; userAct = true; view = 'day'; selDay = dayOnly(new Date()); animList = true;
-        try { localStorage.setItem(VIEW_KEY, view); } catch (_) { }
         render(); scroller.scrollTo({ top: 0, behavior: calm() ? 'auto' : 'smooth' });
         toast(`Dodano na dziś: ${m.name}`);
       }
@@ -632,55 +619,56 @@
       // Cele (jak w Fitatu): wpisujesz kalorie, a makro ustawiasz jako % energii dnia albo w gramach — pola pilnują się nawzajem.
       // Białko i węgle mają 4 kcal/g, tłuszcz 9 kcal/g. Zmiana kalorii przelicza gramy przy tych samych %. Suma % musi dać 100.
       const KCAL_G = { p: 4, f: 9, c: 4 };
-      function openGoals() {
+      // Formularz celów wbudowany w Konto (Ustawienia → Dieta); box to kontener w sekcji Konto (z klasą .s-diet).
+      function goalsMount(box) {
         const g = state.goals, M = [['p', 'Białko'], ['f', 'Tłuszcze'], ['c', 'Węglowodany']];
         let kcal = g.kcal;
         const pct = {};
         M.forEach(([m]) => { pct[m] = g.pct?.[m] ?? Math.round((g[m] * KCAL_G[m]) / g.kcal * 100); });
         if (!g.pct) pct.c += 100 - (pct.p + pct.f + pct.c); // stare cele w gramach: zaokrąglona reszta do węgli, żeby było równe 100%
         const grams = m => Math.round(kcal * pct[m] / 100 / KCAL_G[m]);
-        sheet('Cele dzienne', '', `
-          <div class="goal-k"><button data-gk="-50" aria-label="Mniej">−</button><input id="dt-g-kcal" type="number" inputmode="numeric" min="800" max="8000" step="50" value="${kcal}" aria-label="Kalorie"><button data-gk="50" aria-label="Więcej">+</button></div>
+        box.innerHTML = `<div class="dt-goalset">
+          <div class="goal-k"><button data-gk="-50" aria-label="Mniej">−</button><input data-gkcal type="number" inputmode="numeric" min="800" max="8000" step="50" value="${kcal}" aria-label="Kalorie"><button data-gk="50" aria-label="Więcej">+</button></div>
           <p class="hint">kcal dziennie</p>
           <div class="gbar" data-gbar>${M.map(([m]) => `<i class="${m}"></i>`).join('')}</div>
           <div class="gmac">${M.map(([m, l]) => `<div class="gm ${m}"><span class="gm-n"><i></i>${l}</span><label class="gm-i"><input data-pct="${m}" type="number" inputmode="numeric" min="0" max="100" aria-label="${l} w procentach"><em>%</em></label><label class="gm-i"><input data-g="${m}" type="number" inputmode="numeric" min="0" aria-label="${l} w gramach"><em>g</em></label></div>`).join('')}</div>
           <p class="split-sum" data-gsum></p>
-          <button class="btn btn-primary btn-block" data-gsave>Zapisz cele</button>`, 'Cele');
+          <button class="btn btn-primary btn-block" data-gsave>Zapisz cele</button></div>`;
+        const $b = sel => box.querySelector(sel);
         const total = () => M.reduce((a, [m]) => a + pct[m], 0);
         // odświeża pola; skip = pole, które użytkownik właśnie wpisuje (żeby nie skakał mu kursor)
         const sync = skip => {
           M.forEach(([m]) => {
-            const pi = $(`[data-pct="${m}"]`), gi = $(`[data-g="${m}"]`);
+            const pi = $b(`[data-pct="${m}"]`), gi = $b(`[data-g="${m}"]`);
             if (pi !== skip) pi.value = Math.round(pct[m]);
             if (gi !== skip) gi.value = grams(m);
-            $('[data-gbar]').querySelector('.' + m).style.width = Math.min(100, pct[m]) + '%';
+            $b('[data-gbar]').querySelector('.' + m).style.width = Math.min(100, pct[m]) + '%';
           });
-          const s = Math.round(total()), ok = s === 100, el = $('[data-gsum]');
+          const s = Math.round(total()), ok = s === 100, el = $b('[data-gsum]');
           el.textContent = ok ? 'Razem 100% ✓' : `Razem ${s}% — ${s < 100 ? 'brakuje ' + (100 - s) : 'za dużo o ' + (s - 100)}%`;
           el.classList.toggle('bad', !ok); el.classList.toggle('good', ok);
-          $('[data-gsave]').disabled = !ok;
+          $b('[data-gsave]').disabled = !ok;
         };
-        const setKcal = v => { kcal = Math.max(0, Math.round(v) || 0); sync($('#dt-g-kcal')); };
-        $('#dt-g-kcal').addEventListener('input', e => setKcal(+e.target.value));
-        ov.querySelectorAll('[data-gk]').forEach(b => b.addEventListener('click', () => { kcal = Math.max(800, kcal + +b.dataset.gk); $('#dt-g-kcal').value = kcal; sync(); }));
-        ov.querySelectorAll('[data-pct]').forEach(i => i.addEventListener('input', () => { pct[i.dataset.pct] = Math.max(0, Math.min(100, +i.value || 0)); sync(i); }));
-        ov.querySelectorAll('[data-g]').forEach(i => i.addEventListener('input', () => { const m = i.dataset.g; pct[m] = kcal ? Math.max(0, (+i.value || 0) * KCAL_G[m] / kcal * 100) : 0; sync(i); }));
-        ov.querySelectorAll('.gm input').forEach(i => i.addEventListener('blur', () => sync())); // po wyjściu z pola: równe liczby w obu
-        // pasek podziału rośnie od zera przy otwarciu
-        const gbar = $('[data-gbar]');
-        if (!calm()) { gbar.querySelectorAll('i').forEach(i => { i.style.width = '0'; }); requestAnimationFrame(() => requestAnimationFrame(() => sync())); }
+        $b('[data-gkcal]').addEventListener('input', e => { kcal = Math.max(0, Math.round(+e.target.value) || 0); sync(e.target); });
+        box.querySelectorAll('[data-gk]').forEach(b => b.addEventListener('click', () => { kcal = Math.max(800, kcal + +b.dataset.gk); $b('[data-gkcal]').value = kcal; sync(); }));
+        box.querySelectorAll('[data-pct]').forEach(i => i.addEventListener('input', () => { pct[i.dataset.pct] = Math.max(0, Math.min(100, +i.value || 0)); sync(i); }));
+        box.querySelectorAll('[data-g]').forEach(i => i.addEventListener('input', () => { const m = i.dataset.g; pct[m] = kcal ? Math.max(0, (+i.value || 0) * KCAL_G[m] / kcal * 100) : 0; sync(i); }));
+        box.querySelectorAll('.gm input').forEach(i => i.addEventListener('blur', () => sync())); // po wyjściu z pola: równe liczby w obu
+        // pasek podziału rośnie od zera przy pokazaniu
+        if (!calm()) { $b('[data-gbar]').querySelectorAll('i').forEach(i => { i.style.width = '0'; }); requestAnimationFrame(() => requestAnimationFrame(() => sync())); }
         else sync();
-        if (!calm()) $('[data-gsum]').textContent = '';
-        $('[data-gsave]').addEventListener('click', () => {
+        $b('[data-gsave]').addEventListener('click', () => {
           if (Math.round(total()) !== 100 || kcal < 800) { toast(kcal < 800 ? 'Za mało kalorii (min. 800)' : 'Makro musi dać razem 100%'); return; }
           const rp = { p: Math.round(pct.p), f: Math.round(pct.f) }; rp.c = 100 - rp.p - rp.f;
           state.goals = { kcal, p: grams('p'), f: grams('f'), c: grams('c'), pct: rp };
-          save(); close(); prevDayKey = null; render(); toast('Cele zapisane');
+          save(); prevDayKey = null; render(); toast('Cele zapisane');
         });
       }
+      GL.settings = GL.settings || [];
+      GL.settings.push({ id: 'diet', title: 'Dieta', sub: 'Cele dzienne', html: () => '<div data-goals-box></div>', mount: box => goalsMount(box.querySelector('[data-goals-box]')), onClick: () => false, onChange() { } });
 
       /* ---------- zdarzenia ---------- */
-      function setView(v) { if (v === view) return; view = v; animList = true; try { localStorage.setItem(VIEW_KEY, view); } catch (_) { } render(); }
+      function setView(v) { if (v === view) return; view = v; animList = true; render(); }
       function step(dir) { if (view !== 'day') return; selDay = addDays(selDay, dir); slideDir = dir; ctx.vibrate(6); render(); }
       function goToday() { if (key(selDay) === todayKey()) return; slideDir = selDay > new Date() ? -1 : 1; selDay = dayOnly(new Date()); render(); }
       root.addEventListener('click', e => {
@@ -692,8 +680,7 @@
           setTimeout(() => (m.quick ? openQuickForm : openMealForm)(m), calm() ? 0 : 140); return;
         }
         if (e.target.closest('[data-add]')) { if (e.clientX || e.clientY) ripple(e.clientX, e.clientY, .8); openScan(); return; }
-        if (e.target.closest('[data-goals]')) { openGoals(); return; }
-        const vt = e.target.closest('[data-view]'); if (vt) { if (e.clientX || e.clientY) ripple(e.clientX, e.clientY, .7); setView(vt.dataset.view); return; }
+        const vb = e.target.closest('[data-dviews]'); if (vb) { ctx.dropdown(vb, VIEW_NAMES, view, setView); return; }
         const nav = e.target.closest('[data-nav]'); if (nav) { step(+nav.dataset.nav); return; }
         if (e.target.closest('[data-today]')) { goToday(); return; }
         const sm = e.target.closest('[data-sum]'); if (sm) { if (+sm.dataset.sum === sumDays) return; sumDays = +sm.dataset.sum; animList = true; render(); return; }
@@ -701,6 +688,7 @@
         const gd = e.target.closest('[data-goday]'); if (gd) { selDay = fromKey(gd.dataset.goday); prevDayKey = null; setView('day'); scroller.scrollTo({ top: 0 }); return; }
         if (e.target.closest('.ring') && !calm()) ripple(e.clientX, e.clientY, 1.4);
       });
+      ctx.section.querySelector('.dt-fab').addEventListener('click', e => { if (!calm()) ripple(e.clientX, e.clientY, .8); openScan(); });
       root.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-again]')) { e.preventDefault(); e.stopPropagation(); logAgain(e.target.dataset.again); } });
       root.addEventListener('input', e => { if (e.target.matches('[data-hq]')) { hQuery = e.target.value; hLimit = 14; animList = false; renderHistory(); } });
       document.addEventListener('keydown', e => {
@@ -711,16 +699,6 @@
         if (e.key === 'ArrowLeft') step(-1);
         if (e.key === 'ArrowRight') step(1);
       });
-      // telefon: przesunięcie palcem w bok zmienia dzień
-      let sw = null;
-      const dayEl = vEl('day');
-      dayEl.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') sw = { x: e.clientX, y: e.clientY, pid: e.pointerId }; });
-      dayEl.addEventListener('pointerup', e => {
-        if (!sw || e.pointerId !== sw.pid) return;
-        const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
-        if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) step(dx < 0 ? 1 : -1);
-      });
-      dayEl.addEventListener('pointercancel', () => { sw = null; });
       // nowy dzień: po północy „dziś” przeskakuje samo
       let lastToday = todayKey();
       function checkDayChange() { const t = todayKey(); if (t === lastToday) return false; const wasToday = key(selDay) === lastToday; lastToday = t; if (wasToday) selDay = dayOnly(new Date()); render(); return true; }
