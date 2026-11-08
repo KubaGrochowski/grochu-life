@@ -7,7 +7,7 @@ Motyw: głównie czerń i szarości, kolor tylko w małych detalach (`--pop` #E5
 
 ## Nawigacja
 
-Na dole jest **koło** wygięte w dół: ikony jadą po łuku. Przesuń je palcem (albo kliknij ikonę, kółko myszy, strzałki ← →), a sekcje przesuwają się razem z nim. Pod środkową ikoną jest nazwa sekcji. Aplikacja pamięta ostatnio otwartą sekcję.
+W lewym dolnym rogu jest przycisk z ikoną i nazwą bieżącej sekcji. Dotknięcie (albo przesunięcie palcem od lewej krawędzi ekranu) wysuwa z lewej menu z listą sekcji: ikona i nazwa, bieżąca oznaczona czerwoną kropką. Aplikacja pamięta ostatnio otwartą sekcję.
 
 ## Uruchomienie lokalnie
 

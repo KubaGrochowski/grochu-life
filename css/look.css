@@ -61,12 +61,9 @@ body { font-size: 15px; line-height: 1.5; text-rendering: optimizeLegibility; }
 
 /* ---------- drobne napisy ---------- */
 .eyebrow { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .08em; }
-.wheel-label span { font-weight: 500; font-size: 13px; letter-spacing: .02em; text-transform: none; }
 
 /* ---------- czarno-szaro: kolor tylko w drobiazgach ---------- */
 .s-account .acc-ver em { color: var(--pop); }
-.wheel-label span::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--pop); margin-right: 7px; vertical-align: 2px; box-shadow: 0 0 8px rgba(229, 72, 77, .7); }
-.wheel-label span { text-shadow: none; }
 .bg-b { opacity: .25; }
 .btn-primary, .s-gym .primary, .seg::before { background: #3a3a3a; }
 .btn-primary:hover { background: #444; }

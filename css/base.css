@@ -11,7 +11,7 @@
   --crimson-hi: #ededed;      /* jasny akcent na tekst i cienkie linie */
   --crimson-lo: rgba(255, 255, 255, 0.081);
   --crimson-glow: rgba(0, 0, 0, .6);
-  --pop: #E5484D;              /* jedyny mocny kolor: małe detale (kropka po tytule, kropka w kole) */
+  --pop: #E5484D;              /* jedyny mocny kolor: małe detale (kropka po tytule, kropka przy bieżącej sekcji w menu) */
   --bg: var(--forest);
   --surface: var(--coal);
   --surface-2: var(--coal-2);
@@ -34,7 +34,7 @@
   --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7), 0 2px 6px rgba(0, 0, 0, .35);
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
-  --nav-h: calc(104px + var(--safe-b));   /* wysokość dolnego koła — tyle miejsca zostawić na dole treści */
+  --nav-h: calc(82px + var(--safe-b));    /* miejsce na dole na przycisk menu: tyle zostawić pod treścią */
   color-scheme: dark;
 }
 

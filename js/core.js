@@ -1,4 +1,4 @@
-/* Grochu life — rdzeń: konto, synchronizacja z Supabase (jedna sesja, wiele tabel), sekcje i dolne koło nawigacji.
+/* Grochu life — rdzeń: konto, synchronizacja z Supabase (jedna sesja, wiele tabel), sekcje i boczne menu.
    Bez zewnętrznych bibliotek: Supabase Auth (GoTrue), REST (PostgREST), Realtime i Edge Functions przez fetch/WebSocket.
 
    Sekcja rejestruje się przez GL.register({ id, label, icon, cloud: { table, flatten, unflatten }, init(ctx) }).
@@ -205,54 +205,14 @@
   /* ================================================================ wspólne narzędzia ================================================================ */
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const vibrate = p => { try { navigator.vibrate?.(p); } catch (_) { } };
-  // Krótki „tik” dotykowy. Android: Vibration API. iPhone/iPad nie ma vibrate, a od iOS 26.5 tik z kodu nie działa;
-  // tik daje tylko systemowy przełącznik <input type="checkbox" switch> pod prawdziwym palcem (patrz iosZip niżej).
-  const IOS = (typeof navigator.vibrate !== 'function' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)))
-    || (LOCAL && new URLSearchParams(location.search).has('ios'));   // podgląd lokalny: ?local&ios wymusza ścieżkę iPhone'a
+  // Krótki „tik” dotykowy. Android: Vibration API. iPhone nie ma vibrate, a od iOS 26.5 tik z kodu nie działa —
+  // tik daje tylko prawdziwe dotknięcie systemowego przełącznika, dlatego w przyciskach menu leży niewidoczny (HAP).
   let hapT = 0;
   function haptic(ms = 5) {
-    if (IOS) { iosZip.tick(); return; }
     const t = performance.now(); if (t - hapT < 24) return; hapT = t;
     vibrate(ms);
   }
-
-  /* iPhone: tiki w trakcie przeciągania (technika jak w bibliotece haptick, MIT).
-     Koło przykrywa niewidoczny przełącznik. Dotyk, który na nim się zaczął, WebKit śledzi przez całe przeciąganie
-     i porównuje palec z miejscem, gdzie przełącznik jest TERAZ. Żeby zagrać tik, przesuwamy przełącznik daleko
-     na stronę, po której jest jego gałka — następny ruch palca go przełącza, a to przełączenie to systemowy tik.
-     Gdy nie ma czego zagrać, przełącznik stoi daleko po drugiej stronie, więc palec go nie ruszy. */
-  const iosZip = (() => {
-    const ARM_MS = 260, GAP = 2, FAR = 10000;  // WebKit zaczyna śledzić ok. 200 ms po dotknięciu; tik najwyżej co 2 ruchy
-    let input = null, active = false, on = false, armedAt = 0, queued = 0, since = Infinity;
-    const place = side => { input.style.transform = `translateX(${side === 'L' ? -FAR : FAR}px)`; };
-    const flipSide = () => (on ? 'R' : 'L');   // gałka wyłączonego jest po lewej — tam przesuwamy, żeby ją przełączyć
-    const holdSide = () => (on ? 'L' : 'R');
-    function release(now) {
-      if (!queued || now < armedAt || since < GAP) return false;
-      queued = 0; since = 0; place(flipSide()); on = !on;
-      return true;
-    }
-    return {
-      mount(host) {
-        if (!IOS) return null;
-        input = document.createElement('input');
-        input.type = 'checkbox'; input.setAttribute('switch', ''); input.setAttribute('aria-hidden', 'true'); input.tabIndex = -1;
-        input.className = 'wheel-switch';
-        host.appendChild(input);
-        addEventListener('pointermove', () => {      // przed obsługą koła, żeby tik z tego ruchu wszedł od razu
-          if (!active) return;
-          since++;
-          if (!release(performance.now()) && performance.now() >= armedAt && !input.style.transform) place(holdSide());
-        }, { capture: true, passive: true });
-        const stop = () => { active = false; queued = 0; if (input) input.style.transform = ''; };
-        addEventListener('pointerup', stop, { capture: true });
-        addEventListener('pointercancel', stop, { capture: true });
-        return input;
-      },
-      begin() { if (!input) return; active = true; on = input.checked; armedAt = performance.now() + ARM_MS; queued = 0; since = Infinity; input.style.transform = ''; },
-      tick() { if (!active) return; queued = 1; release(performance.now()); },
-    };
-  })();
+  const HAP = '<label class="hap" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let toastT = null;
   function toast(msg, { tone } = {}) {
@@ -293,7 +253,6 @@
   const $ = s => document.querySelector(s);
   let sections = [];   // { id, label, icon, el, scroller, layer, api }
   let cur = 0;          // aktywna sekcja (indeks)
-  let pos = 0;          // ciągła pozycja koła (indeks z ułamkiem) — steruje kołem i przesunięciem sekcji
 
   function boot() {
     const stage = $('#stage'), layers = $('#layers');
@@ -316,7 +275,7 @@
         cloud: Cloud, toast, vibrate, haptic, calm, esc,
         sheet: (html, opts) => sheet(layer, html, opts),
         go: GL.go,
-        // pełny ekran (np. trwający trening): chowa dolne koło
+        // pełny ekran (np. trwający trening): chowa przycisk menu
         fullscreen: on => { s.full = !!on; if (ctx.active) document.body.classList.toggle('layer-full', s.full); },
       };
       try { s.api = def.init(ctx) || {}; } catch (e) { console.error(def.id, e); s.root.innerHTML = `<p class="gl-err">Sekcja „${esc(def.label)}” nie wczytała się: ${esc(e.message)}</p>`; s.api = {}; }
@@ -329,9 +288,7 @@
     });
     const saved = sections.findIndex(s => s.id === read(NAV_KEY));
     cur = saved >= 0 ? saved : Math.min(1, sections.length - 1);
-    pos = cur;
     buildNav();
-    layout(pos);
     sections[cur].api.show?.();
     sections.forEach((s, i) => { s.el.classList.toggle('on', i === cur); s.layer.classList.toggle('on', i === cur); });
     document.body.dataset.sec = sections[cur].id;
@@ -342,130 +299,78 @@
     navigator.storage?.persist?.().catch(() => { });
   }
 
-  /* ---------- dolne koło: ikony na łuku wygiętym w dół, przesuwane palcem ---------- */
-  const SPACING = () => Math.min(92, Math.max(70, innerWidth / 4.6));
-  let navItems = [], navEl, arcEl;
+  /* ---------- boczne menu: przycisk z ikoną i nazwą sekcji, wysuwana z lewej lista sekcji ---------- */
+  const X_IC = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+  const BURGER = '<svg class="mb-burger" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M3 9h12M3 13h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  let menuBtn, drawer, scrim, items = [], menuOpen = false;
   function buildNav() {
-    navEl = $('#wheel');
-    navEl.innerHTML = `<svg class="wheel-arc" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wa" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1c1c1c"/><stop offset="1" stop-color="#0a0a0a"/></linearGradient><linearGradient id="wl" x1="0" x2="1"><stop offset="0" stop-color="#3a3a3a" stop-opacity="0"/><stop offset=".5" stop-color="#9a9a9a"/><stop offset="1" stop-color="#3a3a3a" stop-opacity="0"/></linearGradient></defs><path class="wa-fill" d="M0 6 Q200 62 400 6 L400 120 L0 120 Z" fill="url(#wa)"/><path class="wa-line" d="M0 6 Q200 62 400 6" fill="none" stroke="url(#wl)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
-      <div class="wheel-glow" aria-hidden="true"></div>
-      <div class="wheel-zip" aria-hidden="true"></div>
-      <div class="wheel-track" role="tablist" aria-label="Sekcje"></div>
-      <div class="wheel-label" aria-hidden="true"><span></span></div>`;
-    arcEl = navEl.querySelector('.wheel-arc');
-    const track = navEl.querySelector('.wheel-track');
-    navItems = sections.map((s, i) => {
+    menuBtn = $('#menu-btn'); drawer = $('#drawer'); scrim = $('#scrim');
+    drawer.innerHTML = `<div class="dr-head"><span class="dr-brand">Grochu life<i>.</i></span><button class="dr-x" type="button" aria-label="Zamknij menu">${X_IC}${HAP}</button></div>
+      <nav class="dr-list" aria-label="Sekcje"></nav>
+      <div class="dr-foot"><span class="dr-mail"></span></div>`;
+    const list = drawer.querySelector('.dr-list');
+    items = sections.map((s, i) => {
       const b = document.createElement('button');
-      b.className = 'wi'; b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-label', s.label);
-      b.innerHTML = `<span class="wi-ic">${s.icon}</span>`;
-      b.addEventListener('click', e => { if (dragMoved) { e.preventDefault(); return; } navTo(i); });
-      track.appendChild(b);
+      b.type = 'button'; b.className = 'dr-item'; b.style.setProperty('--i', i);
+      b.innerHTML = `<span class="dr-ic">${s.icon}</span><span class="dr-l">${esc(s.label)}</span><i class="dr-dot" aria-hidden="true"></i>${HAP}`;
+      b.addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; haptic(6); goTo(i); });
+      list.appendChild(b);
       return b;
     });
-    zipEl = navEl.querySelector('.wheel-zip');
-    // iPhone: przełącznik na całym kole. Dotknięcie bez przesuwania = tik + przejście do ikony pod palcem.
-    const sw = iosZip.mount(navEl);
-    if (sw) sw.addEventListener('click', e => {
-      e.stopPropagation();
-      if (performance.now() - dragEndAt < 400) return;   // klik, który WebKit wysyła na końcu przeciągania
-      sw.style.pointerEvents = 'none';
-      const hit = document.elementFromPoint(e.clientX || lastX, e.clientY || lastY)?.closest('.wi');
-      sw.style.pointerEvents = '';
-      const i = navItems.indexOf(hit); if (i >= 0) navTo(i);
-    });
-    setLabel(cur, true);
-    bindDrag(navEl);
-    addEventListener('resize', () => layout(pos));
+    menuBtn.addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; haptic(6); menuOpen ? closeMenu() : openMenu(); });
+    drawer.querySelector('.dr-x').addEventListener('click', e => { if (e.target.tagName === 'INPUT') return; closeMenu(); });
+    scrim.addEventListener('click', closeMenu);
+    addEventListener('keydown', e => { if (e.key === 'Escape' && menuOpen) closeMenu(); });
+    bindEdgeSwipe();
+    markActive(true);
+  }
+  // przycisk w rogu: ikona i nazwa bieżącej sekcji; przy zmianie stara treść odjeżdża w górę, nowa wjeżdża od dołu
+  function markActive(instant) {
+    const s = sections[cur];
+    items.forEach((b, j) => { b.classList.toggle('on', j === cur); b.setAttribute('aria-current', j === cur ? 'page' : 'false'); });
+    const html = `<span class="mb-in"><span class="mb-ic">${s.icon}</span><span class="mb-l">${esc(s.label)}</span></span>`;
+    const old = menuBtn.querySelector('.mb-in');
+    if (instant || !old || calm()) { menuBtn.innerHTML = `${BURGER}${html}${HAP}`; menuBtn.setAttribute('aria-label', `Menu — ${s.label}`); return; }
+    old.insertAdjacentHTML('afterend', html);
+    const nw = old.nextElementSibling;
+    old.classList.add('out');
+    old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-70%)', filter: 'blur(3px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => old.remove();
+    nw.animate([{ opacity: 0, transform: 'translateY(70%)', filter: 'blur(3px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 420, delay: 80, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+    menuBtn.setAttribute('aria-label', `Menu — ${s.label}`);
+  }
+  function openMenu() {
+    if (menuOpen) return;
+    menuOpen = true;
+    drawer.querySelector('.dr-mail').textContent = Cloud.user?.email || '';
+    drawer.style.transform = ''; scrim.style.opacity = '';
+    document.body.classList.add('menu-open');
+    drawer.setAttribute('aria-hidden', 'false'); menuBtn.setAttribute('aria-expanded', 'true');
+    setTimeout(() => items[cur]?.focus({ preventScroll: true }), 250);
+  }
+  function closeMenu() {
+    if (!menuOpen) return;
+    menuOpen = false;
+    drawer.style.transform = ''; scrim.style.opacity = '';
+    document.body.classList.remove('menu-open');
+    drawer.setAttribute('aria-hidden', 'true'); menuBtn.setAttribute('aria-expanded', 'false');
   }
 
-  let labelIdx = -1;
-  function setLabel(i, instant) {
-    if (i === labelIdx) return;
-    const dir = i > labelIdx ? 1 : -1;
-    labelIdx = i;
-    const box = navEl.querySelector('.wheel-label'), old = box.querySelector('span:not(.out)');
-    const sp = document.createElement('span'); sp.textContent = sections[i].label;
-    box.appendChild(sp);
-    navItems.forEach((b, j) => b.setAttribute('aria-selected', j === i));
-    if (instant || calm()) { box.querySelectorAll('span').forEach(x => x !== sp && x.remove()); return; }
-    sp.animate([{ opacity: 0, transform: `translateX(${dir * 26}px)`, filter: 'blur(4px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    if (old) { old.classList.add('out'); old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * 26}px)`, filter: 'blur(4px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => old.remove(); }
-  }
-
-  /* ---------- zamek błyskawiczny: ząbki na łuku jadą razem z ikonami, każdy ząbek = mini wibracja ---------- */
-  const TEETH = 7;      // ząbków na jedną sekcję
-  let zipEl = null, zipTeeth = [], zipIdx = null, zipLive = false;
-  function zip(p) {
-    const sp = SPACING(), w = navEl.clientWidth || innerWidth, H = navEl.clientHeight || 104, step = sp / TEETH;
-    const n = Math.ceil(w / step) + 2;
-    while (zipTeeth.length < n) { const i = document.createElement('i'); zipEl.appendChild(i); zipTeeth.push(i); }
-    const shift = (((p * sp) % step) + step) % step, base = Math.floor(p * TEETH);
-    zipTeeth.forEach((el, j) => {
-      if (j >= n) { el.style.display = 'none'; return; }
-      el.style.display = '';
-      const x = j * step - shift, t = Math.min(1, Math.max(0, x / w));
-      const yLine = (6 * (1 - t) ** 2 + 124 * t * (1 - t) + 6 * t * t) / 120 * H;  // ten sam łuk co w SVG
-      const ang = Math.atan((112 - 224 * t) * H / 120 / w) * 180 / Math.PI;
-      const side = (base + j) % 2 ? 1 : -1;                                      // ząbki na przemian nad i pod linią
-      const near = Math.max(0, 1 - Math.abs(x - w / 2) / (sp * 1.1));
-      el.style.transform = `translate(${x}px, ${yLine}px) rotate(${ang}deg) translateY(${side * (3.5 - near * 1.5)}px)`;
-      el.style.setProperty('--near', near.toFixed(3));
-    });
-    // każdy ząbek mijający środek = tik; przejście do kolejnej sekcji = mocniejszy
-    const idx = Math.round(p * TEETH);
-    if (zipIdx !== null && idx !== zipIdx && zipLive) haptic(idx % TEETH === 0 ? 14 : 4);
-    zipIdx = idx;
-  }
-
-  // Ustawia koło i sekcje dla ciągłej pozycji p.
-  function layout(p) {
-    if (zipEl) zip(p);
-    const sp = SPACING(), w = navEl.clientWidth || innerWidth;
-    navItems.forEach((b, i) => {
-      const d = i - p, a = Math.abs(d);
-      const x = d * sp;
-      const y = -(Math.min(a, 3) ** 2) * 9 - Math.min(a, 1) * 6;   // łuk wygięty w dół: środek najniżej
-      const sc = 1.18 - Math.min(a, 2.2) * 0.2;
-      const op = Math.max(0, 1 - Math.max(0, a - 0.35) * 0.42);
-      b.style.transform = `translate(${x}px, ${y}px) scale(${sc}) rotate(${d * 7}deg)`;
-      b.style.opacity = op;
-      b.style.setProperty('--hot', Math.max(0, 1 - a * 1.6).toFixed(3));
-      b.style.visibility = Math.abs(x) > w * 0.75 ? 'hidden' : '';
-      b.tabIndex = i === Math.round(p) ? 0 : -1;
-    });
-    sections.forEach((s, i) => {
-      const d = i - p, a = Math.abs(d);
-      if (a >= 1.15) { s.el.style.visibility = 'hidden'; s.el.style.transform = ''; return; }
-      s.el.style.visibility = '';
-      s.el.style.transform = `translate3d(${d * 104}%,0,0) scale(${1 - Math.min(a, 1) * 0.1}) rotateY(${-d * 9}deg)`;
-      s.el.style.opacity = 1 - Math.min(a, 1) * 0.75;
-      s.el.style.filter = a > 0.02 ? `blur(${Math.min(a, 1) * 6}px) saturate(${1 - Math.min(a, 1) * 0.5})` : '';
-      s.el.style.borderRadius = a > 0.02 ? `${Math.min(a * 120, 28)}px` : '';
-      s.el.style.pointerEvents = a < 0.5 ? '' : 'none';
-    });
-    setLabel(Math.max(0, Math.min(sections.length - 1, Math.round(p))));
-  }
-
-  // Animacja sprężynowa do indeksu docelowego.
-  let anim = null;
-  function navTo(i, v0 = 0) {
-    i = Math.max(0, Math.min(sections.length - 1, i));
-    cancelAnimationFrame(anim);
-    if (calm()) { pos = i; layout(pos); settle(i); return; }
-    let v = v0, last = performance.now();
-    const k = 170, c = 2 * Math.sqrt(k) * 0.86; // lekko niedotłumiona sprężyna: miękki dojazd z minimalnym odbiciem
-    const step = t => {
-      const dt = Math.min(0.032, (t - last) / 1000); last = t;
-      v += (-k * (pos - i) - c * v) * dt;
-      pos += v * dt;
-      if (Math.abs(pos - i) < 0.0015 && Math.abs(v) < 0.01) { pos = i; layout(pos); settle(i); zipLive = false; navEl.classList.remove('zip'); return; }
-      layout(pos);
-      anim = requestAnimationFrame(step);
-    };
-    zipLive = true; navEl.classList.add('zip');
+  // przejście między sekcjami: stara odpływa i rozmywa się, nowa wjeżdża z boku (kierunek wg kolejności w menu)
+  function goTo(i) {
+    closeMenu();
+    if (i === cur || i < 0 || i >= sections.length) return;
+    const from = sections[cur], to = sections[i], dir = i > cur ? 1 : -1;
     activate(i);
-    anim = requestAnimationFrame(step);
+    markActive();
+    if (calm()) return;
+    from.el.classList.add('leaving');
+    from.el.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: `translate3d(${-dir * 7}%,0,0) scale(.95)`, filter: 'blur(6px)' }],
+      { duration: 360, easing: 'cubic-bezier(.6,0,.8,.4)' }).onfinish = () => from.el.classList.remove('leaving');
+    to.el.animate([{ opacity: 0, transform: `translate3d(${dir * 9}%,0,0) scale(.98)`, filter: 'blur(8px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }],
+      { duration: 620, delay: 140, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
   }
+  const navTo = goTo;
+
   function activate(i) {
     if (i === cur) return;
     const prev = sections[cur];
@@ -476,52 +381,36 @@
     document.body.classList.toggle('layer-full', !!sections[i].full);
     try { prev.api.hide?.(); } catch (e) { console.error(e); }
     try { sections[i].api.show?.(); } catch (e) { console.error(e); }
+    sections[i].scroller.scrollTop = sections[i].scroller.scrollTop; // bez skoku przewinięcia
     document.dispatchEvent(new CustomEvent('gl:section', { detail: sections[i].id }));
   }
-  function settle(i) {
-    sections.forEach(s => { if (s !== sections[i]) return; s.el.style.filter = ''; s.el.style.transform = ''; s.el.style.borderRadius = ''; });
-  }
 
-  let dragMoved = false, dragEndAt = 0, lastX = 0, lastY = 0;
-  function bindDrag(el) {
-    let sx = 0, sp0 = 0, samples = [], id = null, sy = 0, axis = null;
-    el.addEventListener('pointerdown', e => {
-      if (e.button) return;
-      id = e.pointerId; sx = lastX = e.clientX; sy = lastY = e.clientY; sp0 = pos; samples = [[performance.now(), pos]]; dragMoved = false; axis = null;
-      iosZip.begin();
-      if (!IOS) haptic(6); // chwyt koła
-      cancelAnimationFrame(anim);
-    });
-    el.addEventListener('pointermove', e => {
-      if (e.pointerId !== id) return;
-      const dx = e.clientX - sx, dy = e.clientY - sy; lastX = e.clientX; lastY = e.clientY;
-      // na iPhonie bez przechwytywania wskaźnika: dotyk i tak trzyma się przełącznika, a przechwycenie psułoby jego śledzenie
-      if (!axis) { if (Math.hypot(dx, dy) < 6) return; axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (axis === 'x') { if (!IOS) { try { el.setPointerCapture(id); } catch (_) { } } el.classList.add('drag', 'zip'); zipLive = true; haptic(6); } }
+  // przesunięcie palcem od lewej krawędzi otwiera menu (menu jedzie za palcem); w otwartym menu przesunięcie w lewo je zamyka
+  function bindEdgeSwipe() {
+    let sx = 0, sy = 0, mode = null, axis = null, dx = 0;
+    const W = () => drawer.offsetWidth || 300;
+    addEventListener('touchstart', e => {
+      if (e.touches.length !== 1 || document.body.classList.contains('gate') || document.body.classList.contains('layer-full')) return;
+      const t = e.touches[0]; sx = t.clientX; sy = t.clientY; axis = null; dx = 0;
+      mode = !menuOpen && sx < 22 ? 'open' : menuOpen && (drawer.contains(e.target) || e.target === scrim) ? 'close' : null;
+    }, { passive: true });
+    addEventListener('touchmove', e => {
+      if (!mode) return;
+      const t = e.touches[0]; dx = t.clientX - sx;
+      if (!axis) { if (Math.hypot(dx, t.clientY - sy) < 8) return; axis = Math.abs(dx) > Math.abs(t.clientY - sy) ? 'x' : 'y'; if (axis === 'y') { mode = null; return; } document.body.classList.add('menu-drag'); }
+      const w = W(), shown = mode === 'open' ? Math.max(0, Math.min(w, dx)) : Math.max(0, Math.min(w, w + dx));
+      drawer.style.transform = `translateX(${shown - w}px)`;
+      scrim.style.opacity = String(shown / w);
+      document.body.style.setProperty('--menu-p', (shown / w).toFixed(3));
+    }, { passive: true });
+    addEventListener('touchend', () => {
+      if (!mode) return;
+      const m = mode; mode = null;
+      document.body.classList.remove('menu-drag'); document.body.style.removeProperty('--menu-p');
       if (axis !== 'x') return;
-      dragMoved = true;
-      let p = sp0 - dx / (SPACING() * 1.35); // koło jedzie trochę wolniej niż palec — łatwiej trafić w sąsiednią sekcję
-      const max = sections.length - 1;
-      if (p < 0) p = -Math.pow(-p, 0.6) * 0.45; else if (p > max) p = max + Math.pow(p - max, 0.6) * 0.45; // gumka na końcach
-      pos = p; layout(pos);
-      const t = performance.now(); samples.push([t, pos]); while (samples.length > 2 && t - samples[0][0] > 90) samples.shift();
+      if (m === 'open') { if (dx > 70) { haptic(6); openMenu(); } else { drawer.style.transform = ''; scrim.style.opacity = ''; } }
+      else if (dx < -60) closeMenu(); else { drawer.style.transform = ''; scrim.style.opacity = ''; }
     });
-    const end = e => {
-      if (e.pointerId !== id) return;
-      id = null; el.classList.remove('drag');
-      if (!dragMoved) { zipLive = false; el.classList.remove('zip'); if (axis) dragEndAt = performance.now(); if (axis === 'x') navTo(cur); return; }
-      const [t0, p0] = samples[0], [t1, p1] = samples[samples.length - 1];
-      const v = t1 > t0 ? (p1 - p0) / ((t1 - t0) / 1000) : 0;
-      const target = Math.round(pos + Math.max(-0.55, Math.min(0.55, v * 0.12))); // szybkie machnięcie = najwyżej jedna sekcja dalej
-      dragEndAt = performance.now();
-      navTo(target, v);
-      setTimeout(() => { dragMoved = false; }, 0);
-    };
-    el.addEventListener('pointerup', end);
-    el.addEventListener('pointercancel', end);
-    // kółko myszy / gładzik na komputerze
-    let wheelT = 0;
-    el.addEventListener('wheel', e => { e.preventDefault(); const t = Date.now(); if (t - wheelT < 260) return; const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (Math.abs(d) < 8) return; wheelT = t; navTo(cur + Math.sign(d)); }, { passive: false });
-    el.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { navTo(cur + 1); navItems[Math.min(cur, navItems.length - 1)].focus(); } else if (e.key === 'ArrowLeft') { navTo(cur - 1); navItems[cur].focus(); } });
   }
 
   /* ================================================================ ekran logowania ================================================================ */
